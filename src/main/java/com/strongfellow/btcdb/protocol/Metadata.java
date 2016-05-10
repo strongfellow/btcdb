@@ -3,18 +3,18 @@ package com.strongfellow.btcdb.protocol;
 public class Metadata {
     
     private final int size;
-    private final String headerHash;
+    private final byte[] hash;
 
-    public Metadata(int size, String headerHash) {
+    public Metadata(int size, byte[] hash) {
         this.size = size;
-        this.headerHash = headerHash;
+        this.hash = hash;
     }
 
     public int getSize() {
         return size;
     }
 
-    public String getHash() {
-        return headerHash;
+    public byte[] getHash() {
+        return hash;
     }
 }

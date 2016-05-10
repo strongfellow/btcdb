@@ -2,9 +2,16 @@ package com.strongfellow.btcdb.protocol;
 
 public class BlockHeader {
     
+    private final int version;
+    private final byte[] previousBlock;
+    private final byte[] merkleRoot;
+    private final long timestamp;
+    private final long bits;
+    private final long nonce;
+    
     public BlockHeader(int version,
-            String previousBlock,
-            String merkleRoot,
+            byte[] previousBlock,
+            byte[] merkleRoot,
             long timestamp,
             long bits,
             long nonce) {
@@ -20,11 +27,11 @@ public class BlockHeader {
         return version;
     }
 
-    public String getPreviousBlock() {
+    public byte[] getPreviousBlock() {
         return previousBlock;
     }
 
-    public String getMerkleRoot() {
+    public byte[] getMerkleRoot() {
         return merkleRoot;
     }
 
@@ -40,10 +47,4 @@ public class BlockHeader {
         return nonce;
     }
 
-    private final int version;
-    private final String previousBlock;
-    private final String merkleRoot;
-    private final long timestamp;
-    private final long bits;
-    private final long nonce;
 }

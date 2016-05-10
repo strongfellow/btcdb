@@ -31,13 +31,9 @@ public class BlockReader {
     
     private final InputStream in;
     
-    private final byte[] hash = new byte[32];
-    private String readHash() throws IOException {
+    private byte[] readHash() throws IOException {
         readExactly(32);
-        for (int i = 0; i < 32; i++) {
-            hash[31 - i] = buffer[i];
-        }
-        return new String(Hex.encodeHex(hash, true));
+        return Arrays.copyOf(buffer, 32);
     }
     
     private void readExactly(int n) throws IOException {
@@ -88,17 +84,15 @@ public class BlockReader {
         this.in = input;
     }
 
-    private String getDigest(MessageDigest digest) {
+    private byte[] getDigest(MessageDigest digest) {
         doubleDigest.reset();
         doubleDigest.update(digest.digest());
-        byte[] bs = doubleDigest.digest();
-        ArrayUtils.reverse(bs);
-        return Hex.encodeHexString(bs);
+        return  doubleDigest.digest();
     }
     
     public Block readBlock() throws IOException {
         BlockHeader header = this.readBlockHeader();
-        String headerHash = getDigest(blockDigest);
+        byte[] headerHash = getDigest(blockDigest);
 
         List<Transaction> transactions = this.readTransactions();
         Metadata blockMetadata = new Metadata(this.blockSize, headerHash);

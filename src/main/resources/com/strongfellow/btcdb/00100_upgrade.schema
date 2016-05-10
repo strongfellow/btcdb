@@ -1,0 +1,12 @@
+
+CREATE TABLE IF NOT EXISTS blocks(
+  hash BLOB UNIQUE NOT NULL,
+  block_size INTEGER NOT NULL,
+  version INTEGER NOT NULL,
+  previous BLOB NOT NULL,
+  merkle BLOB NOT NULL,
+  block_timestamp INTEGER NOT NULL,
+  bits INTEGER NOT NULL,
+  nonce INTEGER NOT NULL,
+  tx_count INTEGER NOT NULL
+);

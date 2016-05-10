@@ -1,16 +1,15 @@
 package com.strongfellow.btcdb.components;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.List;
 
+import javax.sql.DataSource;
+
+import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.AbstractGenericHttpMessageConverter;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -26,6 +25,14 @@ public class Configuration {
 
     private static final MediaType BLOCK_MEDIATYPE = new MediaType("strongfellow", "block");
     private static final MediaType TRANSACTION_MEDIATYPE = new MediaType("strongfellow", "transaction");
+    
+    @Bean
+    public DataSource dataSource() {
+            DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create();
+            dataSourceBuilder.driverClassName("org.sqlite.JDBC");
+            dataSourceBuilder.url("jdbc:sqlite:test.db");
+            return dataSourceBuilder.build();   
+    }
     
     @Bean
     public HttpMessageConverters customConverters() {
