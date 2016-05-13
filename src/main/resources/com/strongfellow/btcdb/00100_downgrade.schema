@@ -1,3 +1,0 @@
-
-DROP TABLE IF EXISTS `block_chain`;
-DROP TABLE IF EXISTS `blocks`;
