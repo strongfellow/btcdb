@@ -21,16 +21,19 @@ CREATE TABLE IF NOT EXISTS "blockchain_links"(
 CREATE TABLE IF NOT EXISTS "transactions"(
   "id" INTEGER PRIMARY KEY,
   "hash" BLOB UNIQUE NOT NULL,
-  "version" INTEGER NOT NULL,
-  "lock_time" INTEGER NOT NULL
+  "size" INTEGER,
+  "version" INTEGER,
+  "lock_time" INTEGER
 );
 
-CREATE TABLE IF NOT EXISTS "txins"(
+CREATE TABLE IF NOT EXISTS "spends"(
   "id" INTEGER PRIMARY KEY,
   "transaction" INTEGER NOT NULL,
   "index" INTEGER NOT NULL,
+  "txout" INTEGER NOT NULL,
   "sequence" INTEGER,
   FOREIGN KEY("transaction") REFERENCES "transactions"("id")
+  UNIQUE("transaction", "index")
 );
 
 CREATE TABLE IF NOT EXISTS "txouts"(

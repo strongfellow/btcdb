@@ -95,14 +95,14 @@ public class ParsedScript {
         public ScriptElement(int index, OpCode opcode) {
             this(index, opcode, null);
         }
-        public ScriptElement(int index, OpCode opcode, ByteBuffer data) {
+        public ScriptElement(int index, OpCode op, ByteBuffer data) {
             this.index = index;
-            this.opcode = opcode;
+            this.opcode = op;
             this.data = data;
         }
         final int index;
-        final OpCode opcode;
-        final ByteBuffer data;
+        private final OpCode opcode;
+        private final ByteBuffer data;
 
         @Override
         public String toString() {
@@ -115,8 +115,16 @@ public class ParsedScript {
                 str.append(']');
                 return str.toString();
             } else {
-                return this.opcode.toString().substring(3);
+                return this.getOpCode().toString().substring(3);
             }
+        }
+
+        public boolean isData() {
+            return this.data != null;
+        }
+
+        public OpCode getOpCode() {
+            return this.getOpCode();
         }
     }
 
@@ -352,5 +360,34 @@ public class ParsedScript {
         private int n;
     }
 
+    public boolean isPayToPubKeyHash() {
+        return this.scriptElements.size() == 5
+                && OpCode.OP_DUP.equals(this.scriptElements.get(0).getOpCode())
+                && OpCode.OP_HASH160.equals(this.scriptElements.get(1).getOpCode())
+                && this.scriptElements.get(2).isData()
+                && OpCode.OP_EQUALVERIFY.equals(this.scriptElements.get(3).getOpCode())
+                && OpCode.OP_CHECKSIG.equals(this.scriptElements.get(4).getOpCode());
+    }
+
+    public boolean isPayToScriptHash() {
+        //           HASH160 script_hash EQUAL
+        return this.scriptElements.size() == 3
+                && OpCode.OP_HASH160.equals(scriptElements.get(0).getOpCode())
+                && scriptElements.get(1).isData()
+                && OpCode.OP_EQUAL.equals(scriptElements.get(2));
+
+    }
+
+    public boolean isPayToPublicKey() {
+        return scriptElements.size() == 2
+                && scriptElements.get(0).isData()
+                && OpCode.OP_CHECKSIG.equals(scriptElements.get(1).getOpCode());
+    }
+
+    public boolean isOpReturn() {
+        return scriptElements.size() == 2
+                && OpCode.OP_RETURN.equals(scriptElements.get(1).getOpCode())
+                && scriptElements.get(2).isData();
+    }
 
 }

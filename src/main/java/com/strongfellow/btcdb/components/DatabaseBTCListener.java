@@ -34,7 +34,7 @@ public class DatabaseBTCListener implements BTCListener {
     public void processTransaction(Transaction tx) {
         String hash = Util.bigEndianHash(tx.getMetadata().getHash());
         logger.info("begin processing tx hash {}", hash);
-        database.addTransaction(tx);
+        //        database.addTransaction(tx);
         logger.info("finished processing tx hash {}", hash);
     }
 
