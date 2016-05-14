@@ -69,7 +69,7 @@ public class StrongfellowDB {
         for (Transaction t : block.getTransactions()) {
             Object[] txHash = new Object[] { i++, t.getMetadata().getHash()};
             txHashes.add(txHash);
-            if (i == block.getTransactions().size() - 1 || txHashes.size() == 100) {
+            if (i == block.getTransactions().size() || txHashes.size() == 100) {
                 template.update(ensureTransactions, map);
                 template.update(associateTransactions, map);
                 txHashes.clear();
