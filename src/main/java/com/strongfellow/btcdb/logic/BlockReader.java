@@ -3,39 +3,36 @@ package com.strongfellow.btcdb.logic;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.ArrayUtils;
 
 import com.strongfellow.btcdb.protocol.Block;
 import com.strongfellow.btcdb.protocol.BlockHeader;
-import com.strongfellow.btcdb.protocol.Metadata;
 import com.strongfellow.btcdb.protocol.Input;
+import com.strongfellow.btcdb.protocol.Metadata;
 import com.strongfellow.btcdb.protocol.Output;
 import com.strongfellow.btcdb.protocol.Transaction;
 
 public class BlockReader {
 
     private byte[] buffer = new byte[1024];
-    
+
     private int blockSize;
     private int transactionSize;
     private final MessageDigest doubleDigest = DigestUtils.getSha256Digest();
     private final MessageDigest blockDigest = DigestUtils.getSha256Digest();
     private final MessageDigest transactionDigest = DigestUtils.getSha256Digest();
-    
+
     private final InputStream in;
-    
+
     private byte[] readHash() throws IOException {
         readExactly(32);
         return Arrays.copyOf(buffer, 32);
     }
-    
+
     private void readExactly(int n) throws IOException {
         int offset = 0;
         if (n > buffer.length) {
@@ -53,20 +50,20 @@ public class BlockReader {
         blockSize += n;
         transactionSize += n;
     }
-    
+
     private long readInt(int len) throws IOException {
         readExactly(len);
         long result = 0;
         for (int i = 0; i < len; i++) {
-            result += (0xff & buffer[i]) << (8 * i);
+            result |= ((long)(0xff & buffer[i])) << (8 * i);
         }
         return result;
     }
-    
+
     private long readVarint() throws IOException {
         readExactly(1);
         int b = 0xff & buffer[0];
-        
+
         int len = 0;
         if (b < 0xfd) {
             return b;
@@ -79,7 +76,7 @@ public class BlockReader {
         }
         return readInt(len);
     }
-    
+
     public BlockReader(InputStream input) {
         this.in = input;
     }
@@ -89,7 +86,7 @@ public class BlockReader {
         doubleDigest.update(digest.digest());
         return  doubleDigest.digest();
     }
-    
+
     public Block readBlock() throws IOException {
         BlockHeader header = this.readBlockHeader();
         byte[] headerHash = getDigest(blockDigest);
