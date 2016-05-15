@@ -47,7 +47,8 @@ CREATE TABLE IF NOT EXISTS "txouts"(
   "id" INTEGER PRIMARY KEY,
   "transaction" INTEGER NOT NULL,
   "index" INTEGER NOT NULL,
-  FOREIGN KEY("transaction") REFERENCES "transactions"("id")
+  FOREIGN KEY("transaction") REFERENCES "transactions"("id"),
+  UNIQUE("transaction", "index")
 );
 
 CREATE TABLE IF NOT EXISTS "values"(

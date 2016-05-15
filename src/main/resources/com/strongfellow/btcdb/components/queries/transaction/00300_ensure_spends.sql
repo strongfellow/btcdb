@@ -1,7 +1,6 @@
 
 WITH "tmp"("input_hash", "input_index", "output_hash", "output_index") AS (VALUES :spends)
-INSERT OR IGNORE
-INTO "spends"("txin", "txout")
+INSERT OR IGNORE INTO "spends"("txin", "txout")
 SELECT "txins"."id", "txouts"."id"
 FROM "tmp"
 JOIN "transactions" "t1" ON "t1"."hash" = "tmp"."input_hash"

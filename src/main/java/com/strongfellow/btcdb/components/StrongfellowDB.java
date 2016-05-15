@@ -31,6 +31,13 @@ public class StrongfellowDB {
     private final String insertBlocksDetails;
 
     private final String ensureTransactions;
+    private final String associateTransactionsWithBlocks;
+
+    private final String ensureTxouts;
+    private final String ensureTxins;
+
+    private final String ensureSpends;
+    private final String ensureValues;
 
     private String loadQuery(String path) throws IOException {
         return IOUtils.toString(getClass().getResourceAsStream("queries/" + path + ".sql"), "ascii");
@@ -41,6 +48,11 @@ public class StrongfellowDB {
         insertBlockchain = loadQuery("block/00200_insert_blockchain");
         insertBlocksDetails = loadQuery("block/00300_insert_blocks_details");
         ensureTransactions = loadQuery("block/00500_ensure_transactions");
+        associateTransactionsWithBlocks = loadQuery("block/00600_associate_transactions_with_block");
+        ensureTxouts = loadQuery("transaction/00100_ensure_txouts");
+        ensureTxins = loadQuery("transaction/00200_ensure_txins");
+        ensureSpends = loadQuery("transaction/00300_ensure_spends");
+        ensureValues = loadQuery("transaction/00400_ensure_values");
     }
 
     private void insertBlockchain(Block block) {
@@ -84,103 +96,142 @@ public class StrongfellowDB {
         }
     }
 
+    private void associateTransactionsWithBlock(Block block) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("hash", block.getMetadata().getHash());
+        List<Object[]> txHashes = new ArrayList<>();
+        map.put("tx_hashes", txHashes);
+
+        int i = 0;
+        for (Transaction t : block.getTransactions()) {
+            Object[] row = new Object[] { i++, t.getMetadata().getHash()};
+            txHashes.add(row);
+            if (i == block.getTransactions().size() || txHashes.size() == 400) {
+                template.update(associateTransactionsWithBlocks, map);
+                txHashes.clear();
+            }
+        }
+    }
+
+    private void ensureTxouts(Block block) {
+        int n = 449;
+        List<Object[]> rows = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        map.put("txouts", rows);
+        boolean firstInput = true;
+        for (Transaction t : block.getTransactions()) {
+            for (Input input : t.getInputs()) {
+                if (firstInput) { // this is just coinbase
+                    firstInput = false;
+                } else {
+                    rows.add(new Object[] {  input.getIndex(), input.getHash()});
+                    if (rows.size() == n) {
+                        template.update(ensureTxouts, map);
+                        rows.clear();
+                    }
+                }
+            }
+            for (int i = 0; i < t.getOutputs().size(); i++) {
+                rows.add(new Object[] { i, t.getMetadata().getHash()});
+                if (rows.size() == n) {
+                    template.update(ensureTxouts, map);
+                    rows.clear();
+                }
+            }
+        }
+        if (rows.size() > 0) {
+            template.update(ensureTxouts, map);
+        }
+    }
+
+
+
+    private void ensureTxins(Block block) {
+        int n = 249;
+        List<Object[]> rows = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        map.put("txins", rows);
+        boolean coinbase = true;
+        for (Transaction t : block.getTransactions()) {
+            int index = 0;
+            for (Input input : t.getInputs()) {
+                index++;
+                if (coinbase) {
+                    coinbase = false;
+                } else {
+                    Object[] row = new Object[] {
+                            t.getMetadata().getHash(), index, input.getSequence()
+                    };
+                    rows.add(row);
+                    if (rows.size() == n) {
+                        template.update(ensureTxins, map);
+                        rows.clear();
+                    }
+                }
+            }
+        }
+        if (rows.size() > 0) {
+            template.update(ensureTxins, map);
+        }
+    }
+
     @Transactional
     public void addBlock(Block block) throws UnknownOpCodeException {
         insertBlockchain(block);
         ensureTransactionsAndTransactionReferences(block);
-        //        Map<String, Object> map = new HashMap<>();
-        //
-        //
-        //
-        //        template.update(ensureParent, map);
-        //        template.update(updateBlock, map);
-        //        template.update(insertBlock, map);
-        //        template.update(insertBlockchain, map);
-        //
-        //
-        //        List<Object[]> txHashes = new ArrayList<>();
-        //        map.put("tx_hashes", txHashes);
-        //
-        //        int i = 0;
-        //        for (Transaction t : block.getTransactions()) {
-        //            Object[] txHash = new Object[] { i++, t.getMetadata().getHash()};
-        //            txHashes.add(txHash);
-        //            if (i == block.getTransactions().size() || txHashes.size() == 100) {
-        //                template.update(ensureTransactions, map);
-        //                template.update(associateTransactions, map);
-        //                txHashes.clear();
-        //            }
-        //        }
-        //
-        //        List<Object[]> txOuts = new ArrayList<>();
-        //        map.put("txouts", txOuts);
-        //        int tCount = 0;
-        //        for (Transaction t : block.getTransactions()) {
-        //            tCount++;
-        //            i = 0;
-        //            for (Output output : t.getOutputs()) {
-        //                Object[] row = new Object[] { t.getMetadata().getHash(), i++, output.getValue() };
-        //                txOuts.add(row);
-        //                if ((tCount == block.getTransactions().size() && i == t.getOutputs().size())
-        //                        || txOuts.size() == 100) {
-        //                    template.update(insertCompleteTransactions, map);
-        //                    txOuts.clear();
-        //                }
-        //            }
-        //        }
-        //
-        //        List<Object[]> rows = new ArrayList<>();
-        //        map.put("tx_hashes", rows);
-        //        tCount = 0;
-        //        for (Transaction t : block.getTransactions()) {
-        //            ++tCount;
-        //            i = 0;
-        //            for (Input input : t.getInputs()) {
-        //                i++;
-        //                byte[] bs = input.getHash();
-        //                rows.add(new Object[] { -1, bs });
-        //                if ((tCount == block.getTransactions().size() && i == t.getInputs().size()) || rows.size() == 100) {
-        //                    template.update(ensureTransactions, map);
-        //                    rows.clear();
-        //                }
-        //            }
-        //        }
-        //
-        //        tCount = 0;
-        //        for (Transaction t : block.getTransactions()) {
-        //            tCount++;
-        //            i = 0;
-        //            for (Input input : t.getInputs()) {
-        //                i++;
-        //                Object[] row = new Object[] {
-        //                        input.getHash(), input.getIndex()
-        //                };
-        //                txOuts.add(row);
-        //                if ((tCount == block.getTransactions().size() && i == t.getInputs().size())
-        //                        || txOuts.size() == 100){
-        //                    template.update(insertIncompleteTransactions, map);
-        //                    txOuts.clear();
-        //                }
-        //            }
-        //        }
-        //
-        //        List<Object[]> spends = new ArrayList<>();
-        //        map.put("spends", spends);
-        //        tCount = 0;
-        //        for (Transaction t :block.getTransactions()) {
-        //            i = 0;
-        //            for (Input input : t.getInputs()) {
-        //                Object[] spend = new Object[] {
-        //                        t.getMetadata().getHash(), i++, input.getHash(), input.getIndex()
-        //                };
-        //                spends.add(spend);
-        //                if ((tCount == block.getTransactions().size() && i == t.getInputs().size())
-        //                        || spends.size() == 100) {
-        //                    template.update(insertSpends, map);
-        //                    spends.clear();
-        //                }
-        //            }
-        //        }
+        associateTransactionsWithBlock(block);
+        ensureTxouts(block);
+        ensureTxins(block);
+        ensureSpends(block);
+        ensureValues(block);
+    }
+
+    private void ensureSpends(Block block) {
+        int n = 249;
+        String sql = ensureSpends;
+        List<Object[]> rows = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        map.put("spends", rows);
+        for (Transaction t : block.getTransactions()) {
+            for (int i = 0; i < t.getInputs().size(); i++) {
+                Input input = t.getInputs().get(i);
+                rows.add(new Object[] {
+                        t.getMetadata().getHash(), i,
+                        input.getHash(), input.getIndex()
+                });
+                if (rows.size() == n) {
+                    template.update(sql, map);
+                    rows.clear();
+                }
+            }
+        }
+        if (rows.size() > 0) {
+            template.update(sql, map);
+        }
+
+
+    }
+
+    private void ensureValues(Block block) {
+        int n = 333;
+        String sql = ensureValues;
+        List<Object[]> rows = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        map.put("values", rows);
+        for (Transaction t : block.getTransactions()) {
+            for (int i = 0; i < t.getOutputs().size(); i++) {
+                rows.add(new Object[] {
+                        t.getMetadata().getHash(), i, t.getOutputs().get(i).getValue()
+                });
+                if (rows.size() == n) {
+                    template.update(sql, map);
+                    rows.clear();
+                }
+            }
+        }
+        if (rows.size() > 0) {
+            template.update(sql, map);
+        }
 
     }
 
@@ -200,4 +251,3 @@ public class StrongfellowDB {
         return result;
     }
 }
-

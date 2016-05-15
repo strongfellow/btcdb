@@ -1,5 +1,5 @@
 
-WITH "tmp"("hash", "index", "value") AS (VALUES :txouts)
+WITH "tmp"("hash", "index", "value") AS (VALUES :values)
 INSERT OR IGNORE INTO "values"("txout", "value")
 SELECT "txouts"."id", "tmp"."value"
 FROM "tmp"
