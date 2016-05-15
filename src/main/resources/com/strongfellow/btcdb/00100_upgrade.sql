@@ -2,13 +2,7 @@ BEGIN TRANSACTION;
 
 CREATE TABLE IF NOT EXISTS "blocks"(
   "id" INTEGER PRIMARY KEY,
-  "hash" BLOB UNIQUE NOT NULL,
-  "size" INTEGER,
-  "version" INTEGER,
-  "merkle" BLOB,
-  "timestamp" INTEGER,
-  "bits" INTEGER,
-  "nonce" INTEGER
+  "hash" BLOB UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "blockchain_links"(
@@ -18,19 +12,32 @@ CREATE TABLE IF NOT EXISTS "blockchain_links"(
   FOREIGN KEY("parent") references "blocks"("id")
 );
 
+CREATE TABLE IF NOT EXISTS "blocks_details"(
+  "block" INTEGER NOT NULL PRIMARY KEY,
+  "size" INTEGER NOT NULL,
+  "version" INTEGER NOT NULL,
+  "merkle" BLOB NOT NULL,
+  "timestamp" INTEGER NOT NULL,
+  "bits" INTEGER NOT NULL,
+  "nonce" INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS "transactions"(
   "id" INTEGER PRIMARY KEY,
-  "hash" BLOB UNIQUE NOT NULL,
+  "hash" BLOB UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "transactions_details"(
+  "transaction" INTEGER NOT NULL PRIMARY KEY,
   "size" INTEGER,
   "version" INTEGER,
   "lock_time" INTEGER
 );
 
-CREATE TABLE IF NOT EXISTS "spends"(
+CREATE TABLE IF NOT EXISTS "txins" (
   "id" INTEGER PRIMARY KEY,
   "transaction" INTEGER NOT NULL,
   "index" INTEGER NOT NULL,
-  "txout" INTEGER NOT NULL,
   "sequence" INTEGER,
   FOREIGN KEY("transaction") REFERENCES "transactions"("id")
   UNIQUE("transaction", "index")
@@ -40,8 +47,19 @@ CREATE TABLE IF NOT EXISTS "txouts"(
   "id" INTEGER PRIMARY KEY,
   "transaction" INTEGER NOT NULL,
   "index" INTEGER NOT NULL,
-  "value" INTEGER NOT NULL,
   FOREIGN KEY("transaction") REFERENCES "transactions"("id")
+);
+
+CREATE TABLE IF NOT EXISTS "values"(
+  "txout" INTEGER NOT NULL PRIMARY KEY,
+  "value" INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "spends"(
+  "txin" INTEGER NOT NULL PRIMARY KEY,
+  "txout" INTEGER NOT NULL,
+  FOREIGN KEY("txin") REFERENCES "txins"("id"),
+  FOREIGN KEY("txout") REFERENCES "txouts"("id")
 );
 
 CREATE TABLE IF NOT EXISTS "public_key_scripts"(
@@ -59,13 +77,6 @@ CREATE TABLE IF NOT EXISTS "p2pkh_scripts"(
 CREATE TABLE IF NOT EXISTS "p2sh_scripts"(
   "txout" INTEGER NOT NULL PRIMARY KEY,
   "script_hash" BLOB NOT NULL,
-  FOREIGN KEY("txout") REFERENCES "txouts"("id")
-);
-
-CREATE TABLE IF NOT EXISTS "spends"(
-  "txin" INTEGER NOT NULL PRIMARY KEY,
-  "txout" INTEGER NOT NULL,
-  FOREIGN KEY("txin") REFERENCES "txins"("id"),
   FOREIGN KEY("txout") REFERENCES "txouts"("id")
 );
 
