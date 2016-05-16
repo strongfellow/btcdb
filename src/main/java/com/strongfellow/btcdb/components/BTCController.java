@@ -2,6 +2,7 @@ package com.strongfellow.btcdb.components;
 
 import java.io.IOException;
 
+import org.apache.commons.codec.DecoderException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,7 +40,7 @@ public class BTCController {
 
     @RequestMapping(value="/blocks/{block}/summary")
     @ResponseBody
-    public BlockSummary getBlockSummary(@PathVariable("block") String block) {
+    public BlockSummary getBlockSummary(@PathVariable("block") String block) throws IOException, DecoderException {
         return this.readService.getBlockSummary(block);
     }
 

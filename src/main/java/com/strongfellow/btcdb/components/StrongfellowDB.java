@@ -8,8 +8,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -235,19 +239,41 @@ public class StrongfellowDB {
 
     }
 
-    public BlockSummary getBlockSummary(String block) {
-        String sql = null;
+    private static byte[] hash(String hash) throws DecoderException {
+        byte[] result = Hex.decodeHex(hash.toCharArray());
+        ArrayUtils.reverse(result);
+        return result;
+    }
+
+    public BlockSummary getBlockSummary(String block) throws IOException, DecoderException {
         Map<String, Object> map = new HashMap<>();
-        BlockSummary result = template.queryForObject(sql, map, new RowMapper<BlockSummary>() {
+        map.put("hash", hash(block));
+        String sql = loadQuery("reads/get_block_details");
+        final BlockSummary blockSummary = template.queryForObject(sql, map, new RowMapper<BlockSummary>() {
 
             @Override
             public BlockSummary mapRow(ResultSet rs, int arg1) throws SQLException {
                 BlockSummary result = new BlockSummary();
                 result.size = rs.getInt("size");
+                result.bits = rs.getLong("bits");
+                result.timestamp = rs.getLong("timestamp");
+                result.version = rs.getLong("version");
+                result.nonce = rs.getLong("nonce");
                 return result;
             }
 
         });
-        return result;
+
+        sql = loadQuery("reads/get_num_tx");
+        template.query(sql, map, new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet r) throws SQLException {
+                blockSummary.numTx = r.getInt("count");
+                // TODO Auto-generated method stub
+
+            }
+        });
+
+        return blockSummary;
     }
 }

@@ -1,5 +1,8 @@
 package com.strongfellow.btcdb.components;
 
+import java.io.IOException;
+
+import org.apache.commons.codec.DecoderException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -9,7 +12,7 @@ public class ReadOnlyService {
     @Autowired
     private StrongfellowDB db;
 
-    public BlockSummary getBlockSummary(String block) {
+    public BlockSummary getBlockSummary(String block) throws IOException, DecoderException {
         return this.db.getBlockSummary(block);
     }
 
