@@ -25,15 +25,15 @@ public class Configuration {
 
     private static final MediaType BLOCK_MEDIATYPE = new MediaType("strongfellow", "block");
     private static final MediaType TRANSACTION_MEDIATYPE = new MediaType("strongfellow", "transaction");
-    
+
     @Bean
     public DataSource dataSource() {
-            DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create();
-            dataSourceBuilder.driverClassName("org.sqlite.JDBC");
-            dataSourceBuilder.url("jdbc:sqlite:test.db");
-            return dataSourceBuilder.build();   
+        DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create();
+        dataSourceBuilder.driverClassName("org.sqlite.JDBC");
+        dataSourceBuilder.url("jdbc:sqlite:test.db");
+        return dataSourceBuilder.build();
     }
-    
+
     @Bean
     public HttpMessageConverters customConverters() {
         HttpMessageConverter<Block> blockConverter = new AbstractHttpMessageConverter<Block>(BLOCK_MEDIATYPE) {
@@ -57,7 +57,7 @@ public class Configuration {
                 BlockWriter.write(block, msg.getBody());
             }
         };
-        
+
         HttpMessageConverter<Transaction> transactionConverter = new AbstractHttpMessageConverter<Transaction>(TRANSACTION_MEDIATYPE) {
 
             @Override
@@ -79,7 +79,7 @@ public class Configuration {
                 BlockWriter.writeTransaction(transaction, msg.getBody());
             }
         };
-        
+
         return new HttpMessageConverters(blockConverter, transactionConverter);
     }
 }

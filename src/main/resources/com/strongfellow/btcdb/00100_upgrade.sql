@@ -1,3 +1,6 @@
+
+PRAGMA foreign_keys = ON;
+
 BEGIN TRANSACTION;
 
 CREATE TABLE IF NOT EXISTS "blocks"(
@@ -19,7 +22,8 @@ CREATE TABLE IF NOT EXISTS "blocks_details"(
   "merkle" BLOB NOT NULL,
   "timestamp" INTEGER NOT NULL,
   "bits" INTEGER NOT NULL,
-  "nonce" INTEGER NOT NULL
+  "nonce" INTEGER NOT NULL,
+  FOREIGN KEY("block") REFERENCES "blocks"("id")
 );
 
 CREATE TABLE IF NOT EXISTS "transactions"(
@@ -31,7 +35,8 @@ CREATE TABLE IF NOT EXISTS "transactions_details"(
   "transaction" INTEGER NOT NULL PRIMARY KEY,
   "size" INTEGER,
   "version" INTEGER,
-  "lock_time" INTEGER
+  "lock_time" INTEGER,
+  FOREIGN KEY("transaction") REFERENCES "transactions"("id")
 );
 
 CREATE TABLE IF NOT EXISTS "txins" (
@@ -53,7 +58,8 @@ CREATE TABLE IF NOT EXISTS "txouts"(
 
 CREATE TABLE IF NOT EXISTS "values"(
   "txout" INTEGER NOT NULL PRIMARY KEY,
-  "value" INTEGER NOT NULL
+  "value" INTEGER NOT NULL,
+  FOREIGN KEY("txout") REFERENCES "txouts"("id")
 );
 
 CREATE TABLE IF NOT EXISTS "spends"(

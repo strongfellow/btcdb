@@ -274,6 +274,21 @@ public class StrongfellowDB {
             }
         });
 
+        sql = loadQuery("reads/get_block_chain");
+        template.query(sql,  map, new RowCallbackHandler() {
+
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                byte[] parent = rs.getBytes("parent");
+                byte[] child = rs.getBytes("child");
+                ArrayUtils.reverse(parent);
+                ArrayUtils.reverse(child);
+                blockSummary.parent = Hex.encodeHexString(parent);
+                blockSummary.children.add(Hex.encodeHexString(child));
+            }
+
+        });
+
         return blockSummary;
     }
 }

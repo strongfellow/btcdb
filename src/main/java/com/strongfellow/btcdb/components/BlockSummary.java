@@ -1,5 +1,8 @@
 package com.strongfellow.btcdb.components;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class BlockSummary {
 
     public int size;
@@ -9,4 +12,7 @@ public class BlockSummary {
     public long nonce;
 
     public int numTx;
+
+    public final List<String> children = new ArrayList<>();
+    public String parent;
 }
