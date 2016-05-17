@@ -11,17 +11,28 @@ def _read_exactly(n):
     result += bs
   return result
 
-def main():	
+def main():
+  s = requests.Session()
   logging.basicConfig(level=logging.INFO)
+#  logging.getLogger("requests").setLevel(logging.WARNING)
+
   i = 0
+  statuses = {}
   while True:
     magic = _read_exactly(4)
     size = sum([((x & 0xff) << (i * 8)) for i, x in enumerate(_read_exactly(4))])
     block = _read_exactly(size)
-    response = requests.post('http://localhost:8080/blocks', data=block,
+    response = s.post('http://localhost:8080/blocks', data=block,
                              headers={ 'Content-Type': 'strongfellow/block'})
-    logging.info('%d => %s', i, response)
+    status = response.status_code
+    statuses[status] = 1 + statuses.get(status, 0)
+    if status != 200:
+      logging.info('failed: ' + response.text)
     i += 1
+    if i % 500 == 0:
+      logging.info('================')
+      for k,v in statuses.items():
+        logging.info('%d => %d', k, v)
 
 if __name__ == "__main__":
-  main()	  
+  main()
