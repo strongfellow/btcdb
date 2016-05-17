@@ -17,7 +17,6 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.strongfellow.btcdb.protocol.Block;
 import com.strongfellow.btcdb.protocol.Input;
@@ -179,7 +178,6 @@ public class StrongfellowDB {
         }
     }
 
-    @Transactional
     public void addBlock(Block block) throws UnknownOpCodeException {
         insertBlockchain(block);
         ensureTransactionsAndTransactionReferences(block);
