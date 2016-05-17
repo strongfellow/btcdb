@@ -13,18 +13,57 @@ requirejs(["jquery", "moment.min"], function($, moment) {
   function timestamp(n) {
     return moment.unix(n).utc().format("YYYY-MM-DD hh:mm:ss");
   }
+
 function blockSummaryTable(data) {
+  var thead = $("<thead>").append(
+    $("<tr>").append(
+      $("<th>").attr("colspan", 2).html("Summary")
+    )
+  );
   var tbody = $("<tbody>");
   tbody.append(tr("Number of Transactions", data.numTx));
+  tbody.append(tr("Output Total", null));
+  tbody.append(tr("Estimated Transaction Volume", null));
+  tbody.append(tr("Transaction Fees", null));
+  tbody.append(tr("Height", null));  
   tbody.append(tr("Timestamp", timestamp(data.timestamp)));
-  return $("<table>").append(tbody);
+  tbody.append(tr("Difficulty", null));
+  tbody.append(tr("Bits", null));
+  tbody.append(tr("Size", data.size));
+  tbody.append(tr("Version", data.version));
+  tbody.append(tr("Nonce", data.nonce));
+  tbody.append(tr("Block Reward", null));
+  
+  return $("<table>").append(thead).append(tbody);
+}
+
+function hashesTable(data) {
+  var thead = $("<thead>").append(
+    $("<tr>").append(
+      $("<th>").attr("colspan", 2).html("Hashes")
+    )
+  );
+  var tbody = $("<tbody>");
+  tbody.append(tr("Hash", data.hash));
+  tbody.append(tr("Previous Block", data.parent));
+  tbody.append(tr("Next Block(s)", data.children.join(", ")));
+  tbody.append(tr("Merkle Root", data.merkle));
+  return $("<table>").append(thead).append(tbody);
 }
 
 function loadBlock(hash) {
   console.log("loading block " + hash);
   $.get("/blocks/" + hash + "/summary", function(response) {
+    response.hash = hash;
     console.log(response);
-    $("body").append(blockSummaryTable(response));
+    var summaryTable = blockSummaryTable(response);
+    var ht = hashesTable(response);
+    $("body").append(
+      $("<div>").addClass("pure-g")
+        .append($("<div>").addClass("pure-u-1-3").append(summaryTable))
+        .append($("<div>").addClass("pure-u-2-3").append(ht)
+      )
+    );
   });
 }
 $(function() {

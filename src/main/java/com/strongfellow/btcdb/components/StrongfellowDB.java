@@ -257,6 +257,9 @@ public class StrongfellowDB {
                 result.timestamp = rs.getLong("timestamp");
                 result.version = rs.getLong("version");
                 result.nonce = rs.getLong("nonce");
+                byte[] merkle = rs.getBytes("merkle");
+                ArrayUtils.reverse(merkle);
+                result.merkle = Hex.encodeHexString(merkle);
                 return result;
             }
 

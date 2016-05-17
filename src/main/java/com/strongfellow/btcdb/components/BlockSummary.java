@@ -13,6 +13,7 @@ public class BlockSummary {
 
     public int numTx;
 
+    public String merkle;
     public final List<String> children = new ArrayList<>();
     public String parent;
 }
