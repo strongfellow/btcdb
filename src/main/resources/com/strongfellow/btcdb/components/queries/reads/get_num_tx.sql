@@ -1,5 +1,5 @@
 
 SELECT COUNT(*) AS "count"
 FROM "transactions_in_blocks"
-JOIN "blocks" ON "transactions_in_blocks"."block" = "blocks"."id"
+JOIN "blocks" USING("block_id")
 WHERE "blocks"."hash" = :hash

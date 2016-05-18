@@ -5,15 +5,16 @@ import java.util.List;
 
 public class BlockSummary {
 
-    public int size;
-    public long timestamp;
-    public long bits;
-    public long version;
-    public long nonce;
+    public Integer size;
+    public Long timestamp;
+    public Long bits;
+    public Long version;
+    public Long nonce;
 
-    public int numTx;
+    public Integer numTx;
 
     public String merkle;
-    public final List<String> children = new ArrayList<>();
     public String parent;
+    public final List<String> children = new ArrayList<>();
+    public Integer height;
 }

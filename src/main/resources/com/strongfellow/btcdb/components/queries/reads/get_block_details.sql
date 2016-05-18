@@ -5,6 +5,5 @@ SELECT "b"."size" AS "size",
        "b"."version" AS "version",
        "b"."nonce" AS "nonce",
        "b"."merkle" AS "merkle"
-FROM "blocks" JOIN "blocks_details" "b"
-ON "blocks"."id" = "b"."block"
+FROM "blocks" JOIN "blocks_details" AS "b" USING("block_id")
 WHERE "blocks"."hash" = :hash

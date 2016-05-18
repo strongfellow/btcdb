@@ -1,5 +1,7 @@
 package com.strongfellow.btcdb.components;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +26,7 @@ public class DatabaseBTCListener implements BTCListener {
         logger.info("begin processing block hash {}", hash);
         try {
             database.addBlock(block);
-        } catch(UnknownOpCodeException e) {
+        } catch(UnknownOpCodeException | IOException e) {
             throw new RuntimeException();
         }
         logger.info("finished processing block hash {}", hash);

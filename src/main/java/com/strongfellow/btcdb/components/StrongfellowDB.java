@@ -13,6 +13,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -29,41 +30,71 @@ public class StrongfellowDB {
     @Autowired
     NamedParameterJdbcTemplate template;
 
-    private final String ensureBlocks;
-    private final String insertBlockchain;
-    private final String insertBlocksDetails;
-
-    private final String ensureTransactions;
-    private final String associateTransactionsWithBlocks;
-
-    private final String ensureTxouts;
-    private final String ensureTxins;
-
-    private final String ensureSpends;
-    private final String ensureValues;
-
     private String loadQuery(String path) throws IOException {
         return IOUtils.toString(getClass().getResourceAsStream("queries/" + path + ".sql"), "ascii");
     }
 
-    public StrongfellowDB() throws IOException {
-        ensureBlocks = loadQuery("block/00100_ensure_blocks");
-        insertBlockchain = loadQuery("block/00200_insert_blockchain");
-        insertBlocksDetails = loadQuery("block/00300_insert_blocks_details");
-        ensureTransactions = loadQuery("block/00500_ensure_transactions");
-        associateTransactionsWithBlocks = loadQuery("block/00600_associate_transactions_with_block");
-        ensureTxouts = loadQuery("transaction/00100_ensure_txouts");
-        ensureTxins = loadQuery("transaction/00200_ensure_txins");
-        ensureSpends = loadQuery("transaction/00300_ensure_spends");
-        ensureValues = loadQuery("transaction/00400_ensure_values");
+    private String associateTransactionsWithBlocks() throws IOException {
+        return loadQuery("block/associate_transactions_with_block");
     }
 
-    private void insertBlockchain(Block block) {
+    private String ensureBlocks() throws IOException {
+        return loadQuery("block/ensure_blocks");
+    }
+
+    private String ensureTransactions() throws IOException {
+        return loadQuery("block/ensure_transactions");
+    }
+
+    private String insertBlockchain() throws IOException {
+        return loadQuery("block/insert_blockchain");
+    }
+
+    private String insertBlocksDetails() throws IOException {
+        return loadQuery("block/insert_blocks_details");
+    }
+
+    private String updateDescendents() throws IOException {
+        return loadQuery("block/update_descendents");
+    }
+
+    private String ensureSpends() throws IOException {
+        return loadQuery("transaction/ensure_spends");
+    }
+
+    private String ensureTxins() throws IOException {
+        return loadQuery("transaction/ensure_txins");
+    }
+
+    private String ensureTxouts() throws IOException {
+        return loadQuery("transaction/ensure_txouts");
+    }
+    private String ensureValues() throws IOException {
+        return loadQuery("transaction/ensure_values");
+    }
+
+    private String getBlockDetails() throws IOException {
+        return loadQuery("reads/get_block_details");
+    }
+
+    private String getChildren() throws IOException {
+        return loadQuery("reads/get_children");
+    }
+
+    private String getNumTx() throws IOException {
+        return loadQuery("reads/get_num_tx");
+    }
+
+    private String getParent() throws IOException {
+        return loadQuery("reads/get_parent");
+    }
+
+    private void insertBlockchain(Block block) throws DataAccessException, IOException {
         Map<String, Object> map = new HashMap<>();
         map.put("previous", block.getHeader().getPreviousBlock());
         map.put("hash", block.getMetadata().getHash());
-        template.update(ensureBlocks, map);
-        template.update(insertBlockchain, map);
+        template.update(ensureBlocks(), map);
+        int x = template.update(insertBlockchain(), map);
 
         map.put("size", block.getMetadata().getSize());
         map.put("version", block.getHeader().getVersion());
@@ -71,10 +102,10 @@ public class StrongfellowDB {
         map.put("timestamp", block.getHeader().getTimestamp());
         map.put("bits", block.getHeader().getBits());
         map.put("nonce", block.getHeader().getNonce());
-        template.update(insertBlocksDetails, map);
+        template.update(insertBlocksDetails(), map);
     }
 
-    private void ensureTransactionsAndTransactionReferences(Block block) {
+    private void ensureTransactionsAndTransactionReferences(Block block) throws DataAccessException, IOException {
         int max = 999;
         Map<String, Object> map = new HashMap<>();
         List<Object[]> rows = new ArrayList<>();
@@ -82,24 +113,24 @@ public class StrongfellowDB {
         for (Transaction t : block.getTransactions()) {
             rows.add(new Object[] {t.getMetadata().getHash()});
             if (rows.size() == max) {
-                template.update(ensureTransactions, map);
+                template.update(ensureTransactions(), map);
                 rows.clear();
             }
             for (Input input : t.getInputs()) {
                 rows.add(new Object[] { input.getHash()});
                 if (rows.size() == max) {
-                    template.update(ensureTransactions, map);
+                    template.update(ensureTransactions(), map);
                     rows.clear();
                 }
             }
         }
         if (rows.size() > 0) {
-            template.update(ensureTransactions, map);
+            template.update(ensureTransactions(), map);
             rows.clear();
         }
     }
 
-    private void associateTransactionsWithBlock(Block block) {
+    private void associateTransactionsWithBlock(Block block) throws DataAccessException, IOException {
         Map<String, Object> map = new HashMap<>();
         map.put("hash", block.getMetadata().getHash());
         List<Object[]> txHashes = new ArrayList<>();
@@ -110,13 +141,13 @@ public class StrongfellowDB {
             Object[] row = new Object[] { i++, t.getMetadata().getHash()};
             txHashes.add(row);
             if (i == block.getTransactions().size() || txHashes.size() == 400) {
-                template.update(associateTransactionsWithBlocks, map);
+                template.update(associateTransactionsWithBlocks(), map);
                 txHashes.clear();
             }
         }
     }
 
-    private void ensureTxouts(Block block) {
+    private void ensureTxouts(Block block) throws DataAccessException, IOException {
         int n = 449;
         List<Object[]> rows = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
@@ -129,7 +160,7 @@ public class StrongfellowDB {
                 } else {
                     rows.add(new Object[] {  input.getIndex(), input.getHash()});
                     if (rows.size() == n) {
-                        template.update(ensureTxouts, map);
+                        template.update(ensureTxouts(), map);
                         rows.clear();
                     }
                 }
@@ -137,19 +168,19 @@ public class StrongfellowDB {
             for (int i = 0; i < t.getOutputs().size(); i++) {
                 rows.add(new Object[] { i, t.getMetadata().getHash()});
                 if (rows.size() == n) {
-                    template.update(ensureTxouts, map);
+                    template.update(ensureTxouts(), map);
                     rows.clear();
                 }
             }
         }
         if (rows.size() > 0) {
-            template.update(ensureTxouts, map);
+            template.update(ensureTxouts(), map);
         }
     }
 
 
 
-    private void ensureTxins(Block block) {
+    private void ensureTxins(Block block) throws DataAccessException, IOException {
         int n = 249;
         List<Object[]> rows = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
@@ -167,18 +198,18 @@ public class StrongfellowDB {
                     };
                     rows.add(row);
                     if (rows.size() == n) {
-                        template.update(ensureTxins, map);
+                        template.update(ensureTxins(), map);
                         rows.clear();
                     }
                 }
             }
         }
         if (rows.size() > 0) {
-            template.update(ensureTxins, map);
+            template.update(ensureTxins(), map);
         }
     }
 
-    public void addBlock(Block block) throws UnknownOpCodeException {
+    public void addBlock(Block block) throws UnknownOpCodeException, IOException {
         insertBlockchain(block);
         ensureTransactionsAndTransactionReferences(block);
         associateTransactionsWithBlock(block);
@@ -186,11 +217,38 @@ public class StrongfellowDB {
         ensureTxins(block);
         ensureSpends(block);
         ensureValues(block);
+        updateDescendents(block.getHeader().getPreviousBlock());
     }
 
-    private void ensureSpends(Block block) {
+    private void updateDescendents(byte[] previous) throws IOException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("hash", previous);
+
+        Integer h = null;
+        List<Map<String, Object>> rows = template.queryForList(
+                getBlockHeight(), map);
+
+        for (Map<String, Object> m : rows) {
+            h = (Integer) m.get("height");
+        }
+        if (h != null) {
+            while (true) {
+                map.put("height", h++);
+                int n = template.update(updateDescendents(), map);
+                if (n == 0) {
+                    break;
+                }
+            }
+        }
+    }
+
+    private String getBlockHeight() throws IOException {
+        return loadQuery("reads/get_block_height");
+    }
+
+    private void ensureSpends(Block block) throws IOException {
         int n = 249;
-        String sql = ensureSpends;
+        String sql = ensureSpends();
         List<Object[]> rows = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
         map.put("spends", rows);
@@ -214,9 +272,9 @@ public class StrongfellowDB {
 
     }
 
-    private void ensureValues(Block block) {
+    private void ensureValues(Block block) throws IOException {
         int n = 333;
-        String sql = ensureValues;
+        String sql = ensureValues();
         List<Object[]> rows = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
         map.put("values", rows);
@@ -246,7 +304,7 @@ public class StrongfellowDB {
     public BlockSummary getBlockSummary(String block) throws IOException, DecoderException {
         Map<String, Object> map = new HashMap<>();
         map.put("hash", hash(block));
-        String sql = loadQuery("reads/get_block_details");
+        String sql = getBlockDetails();
         final BlockSummary blockSummary = template.queryForObject(sql, map, new RowMapper<BlockSummary>() {
 
             @Override
@@ -265,29 +323,34 @@ public class StrongfellowDB {
 
         });
 
-        sql = loadQuery("reads/get_num_tx");
-        template.query(sql, map, new RowCallbackHandler() {
+        template.query(getNumTx(), map, new RowCallbackHandler() {
             @Override
             public void processRow(ResultSet r) throws SQLException {
                 blockSummary.numTx = r.getInt("count");
-                // TODO Auto-generated method stub
-
             }
         });
 
-        sql = loadQuery("reads/get_block_chain");
-        template.query(sql,  map, new RowCallbackHandler() {
+        template.query(getParent(), map, new RowCallbackHandler() {
 
             @Override
             public void processRow(ResultSet rs) throws SQLException {
                 byte[] parent = rs.getBytes("parent");
-                byte[] child = rs.getBytes("child");
                 ArrayUtils.reverse(parent);
-                ArrayUtils.reverse(child);
                 blockSummary.parent = Hex.encodeHexString(parent);
+                int h = rs.getInt("height");
+                if (!rs.wasNull()) {
+                    blockSummary.height = h;
+                }
+            }
+        });
+
+        template.query(getChildren(),  map, new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                byte[] child = rs.getBytes("child");
+                ArrayUtils.reverse(child);
                 blockSummary.children.add(Hex.encodeHexString(child));
             }
-
         });
 
         return blockSummary;
