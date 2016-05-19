@@ -30,8 +30,17 @@ public class StrongfellowDB {
     @Autowired
     NamedParameterJdbcTemplate template;
 
+    private final Map<String, String> cachedQueries = new HashMap<>();
+
     private String loadQuery(String path) throws IOException {
-        return IOUtils.toString(getClass().getResourceAsStream("queries/" + path + ".sql"), "ascii");
+        String result = cachedQueries.get(path);
+        if (result == null) {
+            String hot = IOUtils.toString(getClass().getResourceAsStream("queries/" + path + ".sql"), "ascii");
+            cachedQueries.put(path, hot);
+            return hot;
+        } else {
+            return result;
+        }
     }
 
     private String associateTransactionsWithBlocks() throws IOException {

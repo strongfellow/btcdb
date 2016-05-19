@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS "chain"(
   "height" INTEGER,
   FOREIGN KEY("block_id") REFERENCES "blocks"("block_id")
 );
+CREATE INDEX chain_height_idx ON "chain"("height");
 
 INSERT OR IGNORE INTO "blocks"("hash")
 VALUES (x'0000000000000000000000000000000000000000000000000000000000000000');
