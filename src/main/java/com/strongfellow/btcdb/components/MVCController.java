@@ -24,7 +24,15 @@ public class MVCController {
         BlockSummary bs = readService.getBlockSummary(blockHash);
         model.addAttribute("blockHash", blockHash);
         model.addAttribute("numTx", bs.numTx);
-        model.addAttribute("height", bs.height);
+        model.addAttribute("height", bs.getHeight());
+        model.addAttribute("sumOfTxOuts", bs.getSumOfTxouts());
+        model.addAttribute("timestamp", bs.getTimestamp());
+        model.addAttribute("coinbase", bs.getCoinbaseValue());
+        model.addAttribute("feesClaimed", bs.getFeesClaimed());
+        model.addAttribute("feesAvailable", bs.getFeesAvailable());
+        model.addAttribute("reward", bs.getReward());
+        Integer n = bs.getHeight();
+        model.addAttribute("blockReward", bs.getReward());
         return "block-summary";
     }
 }

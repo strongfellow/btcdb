@@ -98,6 +98,16 @@ public class StrongfellowDB {
         return loadQuery("reads/get_parent");
     }
 
+    private String getSumOfTxIns() throws IOException {
+        return loadQuery("reads/get_sum_of_txins");
+    }
+    private String getSumOfTxOuts() throws IOException {
+        return loadQuery("reads/get_sum_of_txouts");
+    }
+    private String getCoinbaseValue() throws IOException {
+        return loadQuery("reads/get_coinbase_value");
+    }
+
     private void insertBlockchain(Block block) throws DataAccessException, IOException {
         Map<String, Object> map = new HashMap<>();
         map.put("previous", block.getHeader().getPreviousBlock());
@@ -198,7 +208,6 @@ public class StrongfellowDB {
         for (Transaction t : block.getTransactions()) {
             int index = 0;
             for (Input input : t.getInputs()) {
-                index++;
                 if (coinbase) {
                     coinbase = false;
                 } else {
@@ -211,6 +220,7 @@ public class StrongfellowDB {
                         rows.clear();
                     }
                 }
+                index++;
             }
         }
         if (rows.size() > 0) {
@@ -321,7 +331,7 @@ public class StrongfellowDB {
                 BlockSummary result = new BlockSummary();
                 result.size = rs.getInt("size");
                 result.bits = rs.getLong("bits");
-                result.timestamp = rs.getLong("timestamp");
+                result.setTimestamp(rs.getLong("timestamp"));
                 result.version = rs.getLong("version");
                 result.nonce = rs.getLong("nonce");
                 byte[] merkle = rs.getBytes("merkle");
@@ -348,7 +358,7 @@ public class StrongfellowDB {
                 blockSummary.parent = Hex.encodeHexString(parent);
                 int h = rs.getInt("height");
                 if (!rs.wasNull()) {
-                    blockSummary.height = h;
+                    blockSummary.setHeight(h);
                 }
             }
         });
@@ -359,6 +369,30 @@ public class StrongfellowDB {
                 byte[] child = rs.getBytes("child");
                 ArrayUtils.reverse(child);
                 blockSummary.children.add(Hex.encodeHexString(child));
+            }
+        });
+
+        template.query(getSumOfTxOuts(), map, new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                long v = rs.getLong("sum");
+                blockSummary.setSumOfTxOuts(rs.wasNull() ? null : v);
+            }
+        });
+
+        template.query(getSumOfTxIns(),  map, new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                long v = rs.getLong("sumOfTxins");
+                blockSummary.setSumOfTxins(rs.wasNull() ? null : v);
+            }
+        });
+
+        template.query(getCoinbaseValue(), map, new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                long v = rs.getLong("coinbase");
+                blockSummary.setCoinbaseValue(rs.wasNull() ? null : v);
             }
         });
 

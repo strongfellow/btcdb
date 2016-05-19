@@ -11,23 +11,19 @@
   <table>
     <thead><tr><th></th></tr></thead>
     <tbody>
-      <tr>
-        <td>Number of Transactions</td><td>${model.numTx}</td>
-      </tr>
-      <tr>
-        <td>Output Total</td><td></td>
-      </tr>
+      <tr><td>Number of Transactions</td><td>${model.numTx}</td></tr>
+      <tr><td>Coinbase</td><td>${model.coinbase}</td></tr>
+      <tr><td>Fees (Claimed/Available)</td><td>${model.feesClaimed}/${model.feesAvailable}</td></tr>
+      <tr><td>Output Total</td><td>${model.sumOfTxOuts}</td></tr>
+      <tr><td>Block Reward</td><td>${model.reward}</td></tr>
       <tr>
         <td>Estimated Transaction Volume</td><td></td>
-      </tr>
-      <tr>
-        <td>Transaction Fees</td><td></td>
       </tr>
       <tr>
         <td>Height</td><td>${(model.height)!"unknown"}</td>
       </tr>
       <tr>
-        <td>Timestamp</td><td></td>
+        <td>Timestamp</td><td>${model.timestamp}</td>
       </tr>
       <tr>
         <td>Difficulty</td><td></td>
@@ -45,7 +41,7 @@
         <td>Nonce</td><td></td>
       </tr>
       <tr>
-        <td>Block Reward</td><td></td>       
+        <td>Block Reward</td><td>${model.blockReward!"unknown"}</td>       
       </tr>
     </tbody>
   </table>
