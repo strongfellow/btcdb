@@ -1,6 +1,7 @@
 package com.strongfellow.btcdb.components;
 
 import java.io.IOException;
+import java.security.DigestException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -12,6 +13,8 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -19,13 +22,18 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.strongfellow.btcdb.logic.Hashes;
 import com.strongfellow.btcdb.protocol.Block;
 import com.strongfellow.btcdb.protocol.Input;
+import com.strongfellow.btcdb.protocol.Output;
 import com.strongfellow.btcdb.protocol.Transaction;
+import com.strongfellow.btcdb.script.ParsedScript;
 import com.strongfellow.btcdb.script.UnknownOpCodeException;
 
 @Repository
 public class StrongfellowDB {
+
+    private static final Logger logger = LoggerFactory.getLogger(StrongfellowDB.class);
 
     @Autowired
     NamedParameterJdbcTemplate template;
@@ -329,11 +337,11 @@ public class StrongfellowDB {
             @Override
             public BlockSummary mapRow(ResultSet rs, int arg1) throws SQLException {
                 BlockSummary result = new BlockSummary();
-                result.size = rs.getInt("size");
-                result.bits = rs.getLong("bits");
+                result.setSize(rs.getInt("size"));
+                result.setBits(rs.getLong("bits"));
                 result.setTimestamp(rs.getLong("timestamp"));
-                result.version = rs.getLong("version");
-                result.nonce = rs.getLong("nonce");
+                result.setVersion(rs.getLong("version"));
+                result.setNonce(rs.getLong("nonce"));
                 byte[] merkle = rs.getBytes("merkle");
                 ArrayUtils.reverse(merkle);
                 result.merkle = Hex.encodeHexString(merkle);
@@ -397,5 +405,20 @@ public class StrongfellowDB {
         });
 
         return blockSummary;
+    }
+
+    public void addScripts(List<Transaction> transactions) throws UnknownOpCodeException, DigestException {
+        for (Transaction t : transactions) {
+            int i = 0;
+            for (Output txout : t.getOutputs()) {
+                byte[] script = txout.getScript();
+                ParsedScript parsedScript = ParsedScript.from(script);
+                if (parsedScript.isPayToPublicKey()) {
+                    byte[] pk = parsedScript.getPublicKey();
+                    String base58check = Hashes.publicKeyHashAddressToBase58(pk);
+                    logger.info("public key: {}", base58check);
+                }
+            }
+        }
     }
 }

@@ -29,12 +29,12 @@ public class BTCController {
     }
 
     @RequestMapping(value="/transactions", method=RequestMethod.POST)
-    public void postTransaction(@RequestBody Transaction transaction) {
+    public void postTransaction(@RequestBody Transaction transaction) throws Exception {
         listener.processTransaction(transaction);
     }
 
     @RequestMapping(value="/blocks", method=RequestMethod.POST)
-    public void postBlock(@RequestBody Block block) throws IOException {
+    public void postBlock(@RequestBody Block block) throws Exception {
         listener.processBlock(block);
     }
 

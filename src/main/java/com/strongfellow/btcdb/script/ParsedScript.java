@@ -8,6 +8,8 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.strongfellow.btcdb.logic.Hashes;
+
 public class ParsedScript {
 
     // standard locking scripts:
@@ -61,7 +63,7 @@ public class ParsedScript {
                     length = littleEndian(script, index + 1, 4);
                     i += 4;
                 }
-                ByteBuffer data = new ByteBuffer(i, length);
+                ByteArrayWrapper data = new ByteArrayWrapper(i, length);
                 i += length;
                 ScriptElement e = new ScriptElement(index, opCode, data);
                 scriptElements.add(e);
@@ -95,14 +97,14 @@ public class ParsedScript {
         public ScriptElement(int index, OpCode opcode) {
             this(index, opcode, null);
         }
-        public ScriptElement(int index, OpCode op, ByteBuffer data) {
+        public ScriptElement(int index, OpCode op, ByteArrayWrapper data) {
             this.index = index;
             this.opcode = op;
             this.data = data;
         }
         final int index;
         private final OpCode opcode;
-        private final ByteBuffer data;
+        private final ByteArrayWrapper data;
 
         @Override
         public String toString() {
@@ -124,12 +126,12 @@ public class ParsedScript {
         }
 
         public OpCode getOpCode() {
-            return this.getOpCode();
+            return this.opcode;
         }
     }
 
-    private static class ByteBuffer {
-        public ByteBuffer(int offset, int length) {
+    private static class ByteArrayWrapper {
+        public ByteArrayWrapper(int offset, int length) {
             this.offset = offset;
             this.length = length;
         }
@@ -382,6 +384,16 @@ public class ParsedScript {
         return scriptElements.size() == 2
                 && scriptElements.get(0).isData()
                 && OpCode.OP_CHECKSIG.equals(scriptElements.get(1).getOpCode());
+    }
+
+
+    public byte[] getPublicKey() {
+        if (!isPayToPublicKey()) {
+            throw new RuntimeException();
+        } else {
+            ByteArrayWrapper baw = scriptElements.get(0).data;
+            return Hashes.hash160(script, baw.offset, baw.length);
+        }
     }
 
     public boolean isOpReturn() {

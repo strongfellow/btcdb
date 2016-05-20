@@ -31,7 +31,10 @@ public class MVCController {
         model.addAttribute("feesClaimed", bs.getFeesClaimed());
         model.addAttribute("feesAvailable", bs.getFeesAvailable());
         model.addAttribute("reward", bs.getReward());
-        Integer n = bs.getHeight();
+        model.addAttribute("bits", bs.getBits());
+        model.addAttribute("size", bs.getSize());
+        model.addAttribute("version", bs.getVersion());
+        model.addAttribute("nonce", bs.getNonce());
         model.addAttribute("blockReward", bs.getReward());
         return "block-summary";
     }

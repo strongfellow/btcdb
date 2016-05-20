@@ -57,11 +57,11 @@ public class BlockSummary {
         return this.coinbaseValue;
     }
 
-    public Integer size;
+    private Integer size;
     public String timestamp;
-    public Long bits;
-    public Long version;
-    public Long nonce;
+    private Long bits;
+    private Long version;
+    private Long nonce;
 
     public Integer numTx;
 
@@ -80,5 +80,29 @@ public class BlockSummary {
 
     public Long getFeesAvailable() {
         return sumOfTxins - (sumOfTxouts - coinbaseValue);
+    }
+    public Integer getSize() {
+        return size;
+    }
+    public void setSize(Integer size) {
+        this.size = size;
+    }
+    public Long getBits() {
+        return bits;
+    }
+    public void setBits(Long bits) {
+        this.bits = bits;
+    }
+    public Long getVersion() {
+        return version;
+    }
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+    public Long getNonce() {
+        return nonce;
+    }
+    public void setNonce(Long nonce) {
+        this.nonce = nonce;
     }
 }

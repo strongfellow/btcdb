@@ -1,6 +1,7 @@
 package com.strongfellow.btcdb.components;
 
 import java.io.IOException;
+import java.security.DigestException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,11 +22,12 @@ public class DatabaseBTCListener implements BTCListener {
     private StrongfellowDB database;
 
     @Override
-    public void processBlock(Block block) {
+    public void processBlock(Block block) throws DigestException, UnknownOpCodeException {
         String hash = Util.bigEndianHash(block.getMetadata().getHash());
         logger.info("begin processing block hash {}", hash);
         try {
             database.addBlock(block);
+            database.addScripts(block.getTransactions());
         } catch(UnknownOpCodeException | IOException e) {
             throw new RuntimeException();
         }

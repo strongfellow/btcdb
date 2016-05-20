@@ -29,19 +29,16 @@
         <td>Difficulty</td><td></td>
       </tr>
       <tr>
-        <td>Bits</td><td></td>
+        <td>Bits</td><td>${model.bits}</td>
       </tr>
       <tr>
-        <td>Size</td><td></td>
+        <td>Size</td><td>${model.size}</td>
       </tr>
       <tr>
-        <td>Version</td><td></td>
+        <td>Version</td><td>${model.version}</td>
       </tr>
       <tr>
-        <td>Nonce</td><td></td>
-      </tr>
-      <tr>
-        <td>Block Reward</td><td>${model.blockReward!"unknown"}</td>       
+        <td>Nonce</td><td>${model.nonce}</td>
       </tr>
     </tbody>
   </table>
