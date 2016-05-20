@@ -116,6 +116,10 @@ public class StrongfellowDB {
         return loadQuery("reads/get_coinbase_value");
     }
 
+    private String insertPublicKeyTxouts() throws IOException {
+        return loadQuery("transaction/ensure_pks");
+    }
+
     private void insertBlockchain(Block block) throws DataAccessException, IOException {
         Map<String, Object> map = new HashMap<>();
         map.put("previous", block.getHeader().getPreviousBlock());
@@ -407,18 +411,34 @@ public class StrongfellowDB {
         return blockSummary;
     }
 
-    public void addScripts(List<Transaction> transactions) throws UnknownOpCodeException, DigestException {
+    public void addScripts(List<Transaction> transactions) throws UnknownOpCodeException, DigestException, DataAccessException, IOException {
+        List<Object[]> pks = new ArrayList<>();
+        Map<String, Object> params = new HashMap<>();
+        params.put("pks", pks);
         for (Transaction t : transactions) {
+            byte[] tx = t.getMetadata().getHash();
             int i = 0;
             for (Output txout : t.getOutputs()) {
                 byte[] script = txout.getScript();
                 ParsedScript parsedScript = ParsedScript.from(script);
                 if (parsedScript.isPayToPublicKey()) {
                     byte[] pk = parsedScript.getPublicKey();
+                    Object[] row = new Object[] {
+                            tx, i, pk
+                    };
+                    pks.add(row);
+                    if (pks.size() == 200) {
+                        template.update(insertPublicKeyTxouts(), params);
+                        params.clear();
+                    }
                     String base58check = Hashes.publicKeyHashAddressToBase58(pk);
                     logger.info("public key: {}", base58check);
                 }
+                i++;
             }
+        }
+        if (pks.size() > 0) {
+            template.update(insertPublicKeyTxouts(), params);
         }
     }
 }
