@@ -17,6 +17,7 @@ public class BlockSummary {
             this.reward = this.reward / 2;
         }
     }
+
     public Integer getHeight() {
         return this.height;
     }
@@ -58,25 +59,29 @@ public class BlockSummary {
     }
 
     public void setCoinbaseScript(byte[] script) {
-        this.coinbaseScript = script;
+        this.coinbaseScript = new String(script);
     }
 
-    public byte[] getCoinbaseScript() {
+    public String getCoinbaseScript() {
         return this.coinbaseScript;
     }
 
-    private byte[] coinbaseScript;
+    private String coinbaseScript;
     private Integer size;
     public String timestamp;
     private Long bits;
     private Long version;
     private Long nonce;
 
-    public Integer numTx;
+    private Integer numTx;
 
-    public String merkle;
-    public String parent;
-    public final List<String> children = new ArrayList<>();
+    private String merkle;
+    private String parent;
+    public String getParent() {
+        return parent;
+    }
+
+    private final List<String> children = new ArrayList<>();
     private Integer height;
     private Long reward = null;
     private Long sumOfTxouts;
@@ -117,5 +122,29 @@ public class BlockSummary {
     }
     public void setNonce(Long nonce) {
         this.nonce = nonce;
+    }
+
+    public Integer getNumTx() {
+        return this.numTx;
+    }
+
+    public void setMerkle(String merkle) {
+        this.merkle = merkle;
+    }
+
+    public String getMerkle() {
+        return this.merkle;
+    }
+
+    public void setNumTx(int n) {
+        this.numTx = n;
+    }
+
+    public void setParent(String p) {
+        this.parent = p;
+    }
+
+    public void addChild(String child) {
+        this.children.add(child);
     }
 }

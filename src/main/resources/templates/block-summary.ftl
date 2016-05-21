@@ -11,37 +11,37 @@
   <table>
     <thead><tr><th></th></tr></thead>
     <tbody>
-      <tr><td>Number of Transactions</td><td>${model.numTx}</td></tr>
-      <tr><td>Coinbase</td><td>${model.coinbase}</td></tr>
-      <tr><td>Fees (Claimed/Available)</td><td>${model.feesClaimed}/${model.feesAvailable}</td></tr>
-      <tr><td>Output Total</td><td>${model.sumOfTxOuts}</td></tr>
-      <tr><td>Block Reward</td><td>${model.reward}</td></tr>
+      <tr><td>Number of Transactions</td><td>${model.blockSummary.numTx}</td></tr>
+      <tr><td>Coinbase</td><td>${model.blockSummary.coinbaseValue}</td></tr>
+      <tr><td>Fees (Claimed/Available)</td><td>${model.blockSummary.feesClaimed}/${model.blockSummary.feesAvailable}</td></tr>
+      <tr><td>Output Total</td><td>${model.blockSummary.sumOfTxouts}</td></tr>
+      <tr><td>Block Reward</td><td>${model.blockSummary.reward}</td></tr>
       <tr>
         <td>Estimated Transaction Volume</td><td></td>
       </tr>
       <tr>
-        <td>Height</td><td>${(model.height)!"unknown"}</td>
+        <td>Height</td><td>${(model.blockSummary.height)!"unknown"}</td>
       </tr>
       <tr>
-        <td>Timestamp</td><td>${model.timestamp}</td>
+        <td>Timestamp</td><td>${model.blockSummary.timestamp}</td>
       </tr>
       <tr>
         <td>Difficulty</td><td></td>
       </tr>
       <tr>
-        <td>Bits</td><td>${model.bits}</td>
+        <td>Bits</td><td>${model.blockSummary.bits}</td>
       </tr>
       <tr>
-        <td>Size</td><td>${model.size}</td>
+        <td>Size</td><td>${model.blockSummary.size}</td>
       </tr>
       <tr>
-        <td>Version</td><td>${model.version}</td>
+        <td>Version</td><td>${model.blockSummary.version}</td>
       </tr>
       <tr>
-        <td>Nonce</td><td>${model.nonce}</td>
+        <td>Nonce</td><td>${model.blockSummary.nonce}</td>
       </tr>
       <tr>
-        <td>Coinbase Script</td><td>${model.coinbaseScript}</td>
+        <td>Coinbase Script</td><td>${model.blockSummary.coinbaseScript}</td>
       </tr>
     </tbody>
   </table>

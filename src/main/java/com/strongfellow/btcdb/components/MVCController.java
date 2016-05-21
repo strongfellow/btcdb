@@ -23,25 +23,7 @@ public class MVCController {
             @ModelAttribute("model") ModelMap model) throws IOException, DecoderException {
         BlockSummary bs = readService.getBlockSummary(blockHash);
         model.addAttribute("blockHash", blockHash);
-        model.addAttribute("numTx", bs.numTx);
-        model.addAttribute("height", bs.getHeight());
-        model.addAttribute("sumOfTxOuts", bs.getSumOfTxouts());
-        model.addAttribute("timestamp", bs.getTimestamp());
-        model.addAttribute("coinbase", bs.getCoinbaseValue());
-        model.addAttribute("feesClaimed", bs.getFeesClaimed());
-        model.addAttribute("feesAvailable", bs.getFeesAvailable());
-        model.addAttribute("reward", bs.getReward());
-        model.addAttribute("bits", bs.getBits());
-        model.addAttribute("size", bs.getSize());
-        model.addAttribute("version", bs.getVersion());
-        model.addAttribute("nonce", bs.getNonce());
-        model.addAttribute("blockReward", bs.getReward());
-        StringBuilder coinbaseScript = new StringBuilder();
-        for (byte b : bs.getCoinbaseScript()) {
-            coinbaseScript.append((char)b);
-        }
-
-        model.addAttribute("coinbaseScript", coinbaseScript.toString());
+        model.addAttribute("blockSummary", bs);
         return "block-summary";
     }
 }

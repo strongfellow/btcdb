@@ -353,7 +353,7 @@ public class StrongfellowDB {
                 result.setNonce(rs.getLong("nonce"));
                 byte[] merkle = rs.getBytes("merkle");
                 ArrayUtils.reverse(merkle);
-                result.merkle = Hex.encodeHexString(merkle);
+                result.setMerkle(Hex.encodeHexString(merkle));
                 return result;
             }
 
@@ -362,7 +362,7 @@ public class StrongfellowDB {
         template.query(getNumTx(), map, new RowCallbackHandler() {
             @Override
             public void processRow(ResultSet r) throws SQLException {
-                blockSummary.numTx = r.getInt("count");
+                blockSummary.setNumTx(r.getInt("count"));
             }
         });
 
@@ -372,7 +372,7 @@ public class StrongfellowDB {
             public void processRow(ResultSet rs) throws SQLException {
                 byte[] parent = rs.getBytes("parent");
                 ArrayUtils.reverse(parent);
-                blockSummary.parent = Hex.encodeHexString(parent);
+                blockSummary.setParent(Hex.encodeHexString(parent));
                 int h = rs.getInt("height");
                 if (!rs.wasNull()) {
                     blockSummary.setHeight(h);
@@ -385,7 +385,7 @@ public class StrongfellowDB {
             public void processRow(ResultSet rs) throws SQLException {
                 byte[] child = rs.getBytes("child");
                 ArrayUtils.reverse(child);
-                blockSummary.children.add(Hex.encodeHexString(child));
+                blockSummary.addChild(Hex.encodeHexString(child));
             }
         });
 
