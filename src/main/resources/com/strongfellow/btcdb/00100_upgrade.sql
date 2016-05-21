@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS "chain"(
   "height" INTEGER,
   FOREIGN KEY("block_id") REFERENCES "blocks"("block_id")
 );
-CREATE INDEX chain_height_idx ON "chain"("height");
+CREATE INDEX IF NOT EXISTS "chain_height_idx" ON "chain"("height");
 
 INSERT OR IGNORE INTO "blocks"("hash")
 VALUES (x'0000000000000000000000000000000000000000000000000000000000000000');
@@ -103,6 +103,12 @@ CREATE TABLE IF NOT EXISTS "p2sh_scripts"(
   "txout_id" INTEGER NOT NULL PRIMARY KEY,
   "script_hash" BLOB NOT NULL,
   FOREIGN KEY("txout_id") REFERENCES "txouts"("txout_id")
+);
+
+CREATE TABLE IF NOT EXISTS "coinbase"(
+  "txin_id" INTEGER NOT NULL PRIMARY KEY,
+  "coinbase" BLOB NOT NULL,
+  FOREIGN KEY("txin_id") REFERENCES "txins"("txin_id")
 );
 
 COMMIT;

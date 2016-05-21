@@ -40,6 +40,9 @@
       <tr>
         <td>Nonce</td><td>${model.nonce}</td>
       </tr>
+      <tr>
+        <td>Coinbase Script</td><td>${model.coinbaseScript}</td>
+      </tr>
     </tbody>
   </table>
 </div>

@@ -10,3 +10,5 @@ JOIN "transactions_in_blocks"
   ON "transactions"."transaction_id" = "transactions_in_blocks"."transaction_id"
 JOIN "blocks" USING("block_id")
 WHERE "blocks"."hash" = :hash
+  AND ("transactions_in_blocks"."index" != 0 OR "txins"."index" != 0)
+  

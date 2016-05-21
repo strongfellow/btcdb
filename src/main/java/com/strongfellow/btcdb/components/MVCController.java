@@ -36,6 +36,12 @@ public class MVCController {
         model.addAttribute("version", bs.getVersion());
         model.addAttribute("nonce", bs.getNonce());
         model.addAttribute("blockReward", bs.getReward());
+        StringBuilder coinbaseScript = new StringBuilder();
+        for (byte b : bs.getCoinbaseScript()) {
+            coinbaseScript.append((char)b);
+        }
+
+        model.addAttribute("coinbaseScript", coinbaseScript.toString());
         return "block-summary";
     }
 }

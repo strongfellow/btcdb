@@ -3,6 +3,7 @@ PRAGMA foreign_keys = ON;
 
 BEGIN TRANSACTION;
 
+DROP TABLE IF EXISTS "coinbase";
 DROP TABLE IF EXISTS "p2sh_scripts";
 DROP TABLE IF EXISTS "p2pkh_scripts";
 DROP TABLE IF EXISTS "public_key_scripts";

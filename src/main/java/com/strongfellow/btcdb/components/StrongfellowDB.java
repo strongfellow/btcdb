@@ -116,8 +116,16 @@ public class StrongfellowDB {
         return loadQuery("reads/get_coinbase_value");
     }
 
+    private String insertCoinbase() throws IOException {
+        return loadQuery("block/insert_coinbase");
+    }
+
     private String insertPublicKeyTxouts() throws IOException {
         return loadQuery("transaction/ensure_pks");
+    }
+
+    private String getCoinbaseScript() throws IOException {
+        return loadQuery("reads/get_coinbase_script");
     }
 
     private void insertBlockchain(Block block) throws DataAccessException, IOException {
@@ -183,17 +191,12 @@ public class StrongfellowDB {
         List<Object[]> rows = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
         map.put("txouts", rows);
-        boolean firstInput = true;
         for (Transaction t : block.getTransactions()) {
             for (Input input : t.getInputs()) {
-                if (firstInput) { // this is just coinbase
-                    firstInput = false;
-                } else {
-                    rows.add(new Object[] {  input.getIndex(), input.getHash()});
-                    if (rows.size() == n) {
-                        template.update(ensureTxouts(), map);
-                        rows.clear();
-                    }
+                rows.add(new Object[] {  input.getIndex(), input.getHash()});
+                if (rows.size() == n) {
+                    template.update(ensureTxouts(), map);
+                    rows.clear();
                 }
             }
             for (int i = 0; i < t.getOutputs().size(); i++) {
@@ -209,31 +212,25 @@ public class StrongfellowDB {
         }
     }
 
-
-
     private void ensureTxins(Block block) throws DataAccessException, IOException {
         int n = 249;
         List<Object[]> rows = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
         map.put("txins", rows);
-        boolean coinbase = true;
         for (Transaction t : block.getTransactions()) {
+            byte[] txHash = t.getMetadata().getHash();
             int index = 0;
             for (Input input : t.getInputs()) {
-                if (coinbase) {
-                    coinbase = false;
-                } else {
-                    Object[] row = new Object[] {
-                            t.getMetadata().getHash(), index, input.getSequence()
-                    };
-                    rows.add(row);
-                    if (rows.size() == n) {
-                        template.update(ensureTxins(), map);
-                        rows.clear();
-                    }
+                Object[] row = new Object[] {
+                        txHash, index, input.getSequence()
+                };
+                rows.add(row);
+                if (rows.size() == n) {
+                    template.update(ensureTxins(), map);
+                    rows.clear();
                 }
-                index++;
             }
+            index++;
         }
         if (rows.size() > 0) {
             template.update(ensureTxins(), map);
@@ -249,6 +246,15 @@ public class StrongfellowDB {
         ensureSpends(block);
         ensureValues(block);
         updateDescendents(block.getHeader().getPreviousBlock());
+        insertCoinbase(block);
+    }
+
+    private void insertCoinbase(Block block) throws DataAccessException, IOException {
+        Transaction t = block.getTransactions().get(0);
+        Map<String, byte[]> params = new HashMap<>();
+        params.put("tx", t.getMetadata().getHash());
+        params.put("coinbase", t.getInputs().get(0).getScript());
+        template.update(insertCoinbase(), params);
     }
 
     private void updateDescendents(byte[] previous) throws IOException {
@@ -284,10 +290,11 @@ public class StrongfellowDB {
         Map<String, Object> map = new HashMap<>();
         map.put("spends", rows);
         for (Transaction t : block.getTransactions()) {
+            byte[] txHash = t.getMetadata().getHash();
             for (int i = 0; i < t.getInputs().size(); i++) {
                 Input input = t.getInputs().get(i);
                 rows.add(new Object[] {
-                        t.getMetadata().getHash(), i,
+                        txHash, i,
                         input.getHash(), input.getIndex()
                 });
                 if (rows.size() == n) {
@@ -299,8 +306,6 @@ public class StrongfellowDB {
         if (rows.size() > 0) {
             template.update(sql, map);
         }
-
-
     }
 
     private void ensureValues(Block block) throws IOException {
@@ -396,7 +401,7 @@ public class StrongfellowDB {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
                 long v = rs.getLong("sumOfTxins");
-                blockSummary.setSumOfTxins(rs.wasNull() ? null : v);
+                blockSummary.setSumOfTxins(rs.wasNull() ? 0 : v);
             }
         });
 
@@ -405,6 +410,15 @@ public class StrongfellowDB {
             public void processRow(ResultSet rs) throws SQLException {
                 long v = rs.getLong("coinbase");
                 blockSummary.setCoinbaseValue(rs.wasNull() ? null : v);
+            }
+        });
+
+        template.query(getCoinbaseScript(), map, new RowCallbackHandler() {
+
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                byte[] script = rs.getBytes("coinbase");
+                blockSummary.setCoinbaseScript(rs.wasNull() ? null : script);
             }
         });
 

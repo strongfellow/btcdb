@@ -57,6 +57,15 @@ public class BlockSummary {
         return this.coinbaseValue;
     }
 
+    public void setCoinbaseScript(byte[] script) {
+        this.coinbaseScript = script;
+    }
+
+    public byte[] getCoinbaseScript() {
+        return this.coinbaseScript;
+    }
+
+    private byte[] coinbaseScript;
     private Integer size;
     public String timestamp;
     private Long bits;
@@ -79,7 +88,11 @@ public class BlockSummary {
     }
 
     public Long getFeesAvailable() {
-        return sumOfTxins - (sumOfTxouts - coinbaseValue);
+        if (sumOfTxins != null && sumOfTxouts != null && coinbaseValue != null) {
+            return sumOfTxins - (sumOfTxouts - coinbaseValue);
+        } else {
+            return null;
+        }
     }
     public Integer getSize() {
         return size;
