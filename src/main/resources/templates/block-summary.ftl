@@ -1,3 +1,13 @@
+<#macro blockLink hash>
+<span class="hash">
+<a href="/api/block/${hash}/summary.html">${hash}</a>
+</#macro>
+
+<#macro merkleLink merkle>
+<span class="hash">
+  <a href="/api/merkle/${merkle}/summary.html">${merkle}</a>
+</#macro>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +21,7 @@
 <div class="pure-u-1-3">
 <div class="content-container">
   <table>
-    <thead><tr><th></th></tr></thead>
+    <thead><tr><th>Summary</th></tr></thead>
     <tbody>
       <tr><td>Number of Transactions</td><td>${model.blockSummary.numTx}</td></tr>
       <tr><td>Coinbase</td><td>${model.blockSummary.coinbaseValue}</td></tr>
@@ -50,6 +60,38 @@
 </div>
 </div>
 <div class="pure-u-1-3">
+<div class="content-container">
+  <table>
+  <thead>
+    <tr><th>Hashes</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="key">Block Hash</td>
+      <td class="value"><@blockLink hash=model.blockHash /></td>
+    </tr>
+    <tr>
+      <td class="key">Merkle Root</td>
+      <td class="value">
+        <@merkleLink merkle=model.blockSummary.merkle />
+    </td>
+    </tr>
+    <tr>
+      <td class="key">Previous Block</td>
+      <td class="value"><@blockLink hash=model.blockSummary.parent /></td></tr>
+    <tr>
+      <td class="key">Next Blocks</td>
+      <td class="value">
+        <ul style="list-style-type:none; padding:0">
+        <#list model.blockSummary.children as child>
+          <li><@blockLink hash=child /></li>
+        </#list>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+  </table>
+</div>
 </div>
 </body>
 </html>

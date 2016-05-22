@@ -9,6 +9,96 @@ import org.joda.time.format.ISODateTimeFormat;
 
 public class BlockSummary {
 
+    private String timestamp;
+    private Long bits;
+    private final List<String> children = new ArrayList<>();
+    private String coinbaseScript;
+    private Long coinbaseValue;
+    private Integer height;
+    private String merkle;
+    private Long nonce;
+    private Integer numTx;
+    private String parent;
+    private Long reward;
+    private Integer size;
+    private Long sumOfTxins;
+    private Long sumOfTxouts;
+    private Long version;
+
+    public void addChild(String child) {
+        this.children.add(child);
+    }
+
+    public List<String> getChildren() {
+        return children;
+    }
+
+    public Long getBits() {
+        return bits;
+    }
+    public String getCoinbaseScript() {
+        return this.coinbaseScript;
+    }
+    public Long getCoinbaseValue() {
+        return this.coinbaseValue;
+    }
+
+    public Long getFeesAvailable() {
+        if (sumOfTxins != null && sumOfTxouts != null && coinbaseValue != null) {
+            return sumOfTxins - (sumOfTxouts - coinbaseValue);
+        } else {
+            return null;
+        }
+    }
+
+    public Long getFeesClaimed() {
+        return coinbaseValue - getReward();
+    }
+    public Integer getHeight() {
+        return this.height;
+    }
+    public String getMerkle() {
+        return this.merkle;
+    }
+
+    public Long getNonce() {
+        return nonce;
+    }
+    public Integer getNumTx() {
+        return this.numTx;
+    }
+    public String getParent() {
+        return parent;
+    }
+    public Long getReward() {
+        return this.reward;
+    }
+    public Integer getSize() {
+        return size;
+    }
+    public Long getSumOfTxins() {
+        return this.sumOfTxins;
+    }
+
+    public Long getSumOfTxouts() {
+        return this.sumOfTxouts;
+    }
+
+    public String getTimestamp() {
+        return this.timestamp;
+    }
+    public Long getVersion() {
+        return version;
+    }
+    public void setBits(Long bits) {
+        this.bits = bits;
+    }
+    public void setCoinbaseScript(byte[] script) {
+        this.coinbaseScript = new String(script);
+    }
+    public void setCoinbaseValue(Long v) {
+        this.coinbaseValue = v;
+    }
     public void setHeight(Integer h) {
         this.height = h;
         this.reward = 5000000000L;
@@ -17,21 +107,22 @@ public class BlockSummary {
             this.reward = this.reward / 2;
         }
     }
-
-    public Integer getHeight() {
-        return this.height;
+    public void setMerkle(String merkle) {
+        this.merkle = merkle;
+    }
+    public void setNonce(Long nonce) {
+        this.nonce = nonce;
+    }
+    public void setNumTx(int n) {
+        this.numTx = n;
     }
 
-    public Long getReward() {
-        return this.reward;
+    public void setParent(String p) {
+        this.parent = p;
     }
 
-    public String getTimestamp() {
-        return this.timestamp;
-    }
-
-    public void setTimestamp(Long timestamp) {
-        this.timestamp = ISODateTimeFormat.dateTime().print(new DateTime(timestamp * 1000, DateTimeZone.UTC));
+    public void setSize(Integer size) {
+        this.size = size;
     }
 
     public void setSumOfTxins(Long value) {
@@ -42,109 +133,11 @@ public class BlockSummary {
         this.sumOfTxouts = v;
     }
 
-    public Long getSumOfTxouts() {
-        return this.sumOfTxouts;
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = ISODateTimeFormat.dateTime().print(new DateTime(timestamp * 1000, DateTimeZone.UTC));
     }
 
-    public Long getSumOfTxins() {
-        return this.sumOfTxins;
-    }
-
-    public void setCoinbaseValue(Long v) {
-        this.coinbaseValue = v;
-    }
-
-    public Long getCoinbaseValue() {
-        return this.coinbaseValue;
-    }
-
-    public void setCoinbaseScript(byte[] script) {
-        this.coinbaseScript = new String(script);
-    }
-
-    public String getCoinbaseScript() {
-        return this.coinbaseScript;
-    }
-
-    private String coinbaseScript;
-    private Integer size;
-    public String timestamp;
-    private Long bits;
-    private Long version;
-    private Long nonce;
-
-    private Integer numTx;
-
-    private String merkle;
-    private String parent;
-    public String getParent() {
-        return parent;
-    }
-
-    private final List<String> children = new ArrayList<>();
-    private Integer height;
-    private Long reward = null;
-    private Long sumOfTxouts;
-    private Long sumOfTxins;
-    private Long coinbaseValue;
-
-    public Long getFeesClaimed() {
-        return coinbaseValue - getReward();
-    }
-
-    public Long getFeesAvailable() {
-        if (sumOfTxins != null && sumOfTxouts != null && coinbaseValue != null) {
-            return sumOfTxins - (sumOfTxouts - coinbaseValue);
-        } else {
-            return null;
-        }
-    }
-    public Integer getSize() {
-        return size;
-    }
-    public void setSize(Integer size) {
-        this.size = size;
-    }
-    public Long getBits() {
-        return bits;
-    }
-    public void setBits(Long bits) {
-        this.bits = bits;
-    }
-    public Long getVersion() {
-        return version;
-    }
     public void setVersion(Long version) {
         this.version = version;
-    }
-    public Long getNonce() {
-        return nonce;
-    }
-    public void setNonce(Long nonce) {
-        this.nonce = nonce;
-    }
-
-    public Integer getNumTx() {
-        return this.numTx;
-    }
-
-    public void setMerkle(String merkle) {
-        this.merkle = merkle;
-    }
-
-    public String getMerkle() {
-        return this.merkle;
-    }
-
-    public void setNumTx(int n) {
-        this.numTx = n;
-    }
-
-    public void setParent(String p) {
-        this.parent = p;
-    }
-
-    public void addChild(String child) {
-        this.children.add(child);
     }
 }

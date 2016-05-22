@@ -2,3 +2,7 @@
 .content-container {
   margin: 30px;
 }
+
+.hash {
+  font-family: monospace;
+}
