@@ -1,7 +1,12 @@
+<#macro addressLink address>
+<span class="address">
+  <a href="/api/address/${address}/summary.html">${address}</a>
+</span>
+</#macro>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
+  <link rel="stylesheet" href="/css/pure-release-0.6.0/pure-min.css">
   <link rel="stylesheet" href="/css/strongfellow.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Strongfellow - Transaction ${model.transactionHash}</title>
@@ -10,29 +15,34 @@
 <div class="pure-g">
   <div class="pure-u-1-1">
   <div class="content-container">
-  <a href="/api/transaction/${model.transactionHash}/summary.html">
-    ${model.transactionHash}
-  </a>
+  <span class="hash">
+    <a href="/api/transaction/${model.transactionHash}/summary.html">
+      ${model.transactionHash}
+    </a>
+  </span>
   </div>
   </div>
   <div class="pure-u-5-12">
   <div class="txins content-container">
     <table>
       <thead>
-        <tr><th colspan="3">Inputs</th></tr>
+        <tr><th colspan="2">Inputs</th></tr>
         <#if model.transactionSummary.inputs?has_content >
-          <tr><th></th><th>Address</th><th>Value</th></tr>
+          <tr><th>Address</th><th>Value</th></tr>
         </#if>
       </thead>
       <tbody>
       <#if model.transactionSummary.inputs?has_content>
       <#list model.transactionSummary.inputs as input>
         <tr>
+          <td><@addressLink address=input.address /></td>
           <td>
-            <a href="/api/transaction/${input.txout}/summary.html#output${input.index}">Source</a>
+            <span class="satoshis">
+              <a href="/api/transaction/${input.txout}/summary.html#output${input.index}">
+              ${input.value}
+              </a>
+            </span>
           </td>
-          <td><span class="address">${input.address}</span></td>
-          <td><span class="satoshis">${input.value}</span></td>
         </tr>
       </#list>
       <#else>
@@ -61,7 +71,7 @@
     <tbody>
     <#list model.transactionSummary.outputs as output>
       <tr>
-        <td><span class="address">${output.address}</span></td>
+        <td><@addressLink address=output.address /></td>
         <td><span class="satoshis">${output.value}</span></td>
         <td>
           <#if output.spends?has_content>

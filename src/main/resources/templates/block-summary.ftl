@@ -11,7 +11,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
+  <link rel="stylesheet" href="/css/pure-release-0.6.0/pure-min.css">
   <link rel="stylesheet" href="/css/strongfellow.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Strongfellow - Block ${model.blockHash}</title>
