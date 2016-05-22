@@ -28,6 +28,7 @@ import com.strongfellow.btcdb.protocol.Input;
 import com.strongfellow.btcdb.protocol.Output;
 import com.strongfellow.btcdb.protocol.Transaction;
 import com.strongfellow.btcdb.response.BlockSummary;
+import com.strongfellow.btcdb.response.Spend;
 import com.strongfellow.btcdb.response.TransactionSummary;
 import com.strongfellow.btcdb.response.Txin;
 import com.strongfellow.btcdb.response.Txout;
@@ -493,7 +494,6 @@ public class StrongfellowDB {
         params.put("hash", hash(hash));
 
         template.query(getTransactionSummary(), params, new RowCallbackHandler() {
-
             @Override
             public void processRow(ResultSet rs) throws SQLException {
                 long size = rs.getLong("size");
@@ -508,21 +508,40 @@ public class StrongfellowDB {
         });
 
 
-        List<Txout> txouts = template.query(getTxouts(), params, new RowMapper<Txout>() {
+        Map<Integer, Txout> m = new HashMap<>();
+        template.query(getTxouts(), params, new RowCallbackHandler() {
 
             @Override
-            public Txout mapRow(ResultSet rs, int rowNum) throws SQLException {
-                Txout t = new Txout();
-                byte[] address = rs.getBytes("address");
-                try {
-                    t.setAddress(rs.wasNull() ? null : address);
-                } catch (DigestException e) {
-                    throw new SQLException(e);
+            public void processRow(ResultSet rs) throws SQLException {
+                Spend spend = null;
+                byte[] tx = rs.getBytes("tx");
+                if (!rs.wasNull()) {
+                    spend = new Spend();
+                    spend.setTx(hash(tx));
+                    spend.setIndex(rs.getInt("index"));
                 }
-                t.setValue(rs.getLong("value"));
-                return t;
+
+                int row = rs.getInt("row");
+                if (!rs.wasNull() && m.containsKey(row)) {
+                    m.get(row).getSpends().add(spend);
+                } else {
+                    Txout t = new Txout();
+                    transactionSummary.addOutput(t);
+                    m.put(row, t);
+                    byte[] address = rs.getBytes("address");
+                    try {
+                        t.setAddress(rs.wasNull() ? null : address);
+                    } catch (DigestException e) {
+                        throw new SQLException(e);
+                    }
+                    t.setValue(rs.getLong("value"));
+                    if (spend != null) {
+                        t.addSpend(spend);
+                    }
+                }
             }
         });
+
 
         List<Txin> txins = template.query(getTxins(), params, new RowMapper<Txin>() {
 
@@ -544,9 +563,6 @@ public class StrongfellowDB {
         });
         for (Txin i : txins) {
             transactionSummary.addInput(i);
-        }
-        for (Txout o : txouts) {
-            transactionSummary.addOutput(o);
         }
         return transactionSummary;
     }
