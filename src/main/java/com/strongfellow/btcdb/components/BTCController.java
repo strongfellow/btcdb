@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.strongfellow.btcdb.protocol.Block;
 import com.strongfellow.btcdb.protocol.Transaction;
+import com.strongfellow.btcdb.response.BlockSummary;
 
 @RestController
 public class BTCController {

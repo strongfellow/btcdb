@@ -27,6 +27,8 @@ import com.strongfellow.btcdb.protocol.Block;
 import com.strongfellow.btcdb.protocol.Input;
 import com.strongfellow.btcdb.protocol.Output;
 import com.strongfellow.btcdb.protocol.Transaction;
+import com.strongfellow.btcdb.response.BlockSummary;
+import com.strongfellow.btcdb.response.TransactionSummary;
 import com.strongfellow.btcdb.script.ParsedScript;
 import com.strongfellow.btcdb.script.UnknownOpCodeException;
 
@@ -61,6 +63,10 @@ public class StrongfellowDB {
 
     private String ensureTransactions() throws IOException {
         return loadQuery("block/ensure_transactions");
+    }
+
+    private String ensureTransactionDetails() throws IOException {
+        return loadQuery("transaction/ensure_transaction_details");
     }
 
     private String insertBlockchain() throws IOException {
@@ -126,6 +132,10 @@ public class StrongfellowDB {
 
     private String getCoinbaseScript() throws IOException {
         return loadQuery("reads/get_coinbase_script");
+    }
+
+    private String getTransactionSummary() throws IOException {
+        return loadQuery("reads/transaction/get_transaction_summary");
     }
 
     private void insertBlockchain(Block block) throws DataAccessException, IOException {
@@ -240,6 +250,7 @@ public class StrongfellowDB {
     public void addBlock(Block block) throws UnknownOpCodeException, IOException {
         insertBlockchain(block);
         ensureTransactionsAndTransactionReferences(block);
+        ensureTransactionDetails(block.getTransactions());
         associateTransactionsWithBlock(block);
         ensureTxouts(block);
         ensureTxins(block);
@@ -247,6 +258,18 @@ public class StrongfellowDB {
         ensureValues(block);
         updateDescendents(block.getHeader().getPreviousBlock());
         insertCoinbase(block);
+    }
+
+    private void ensureTransactionDetails(List<Transaction> transactions) throws DataAccessException, IOException {
+        List<Object[]> rows = new ArrayList<>();
+        for (Transaction t : transactions) {
+            rows.add(new Object[] {
+                    t.getMetadata().getHash(), t.getMetadata().getSize(), t.getVersion(), t.getnLockTime()
+            });
+        }
+        Map<String, Object> params = new HashMap<>();
+        params.put("details", rows);
+        template.update(ensureTransactionDetails(), params);
     }
 
     private void insertCoinbase(Block block) throws DataAccessException, IOException {
@@ -454,5 +477,28 @@ public class StrongfellowDB {
         if (pks.size() > 0) {
             template.update(insertPublicKeyTxouts(), params);
         }
+    }
+
+    public TransactionSummary getTransactionSummmary(String hash) throws DecoderException, DataAccessException, IOException {
+        TransactionSummary transactionSummary = new TransactionSummary();
+        Map<String, Object> params = new HashMap<>();
+        params.put("hash", hash(hash));
+
+        template.query(getTransactionSummary(), params, new RowCallbackHandler() {
+
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                long size = rs.getLong("size");
+                transactionSummary.setSize(rs.wasNull() ? null : size);
+                long version = rs.getLong("version");
+                transactionSummary.setVersion(rs.wasNull() ? null : version);
+                long lockTime = rs.getLong("lock_time");
+                transactionSummary.setLockTime(rs.wasNull() ? null : lockTime);
+                long outputs = rs.getLong("output");
+                transactionSummary.setOutputValue(rs.wasNull() ? null : outputs);
+            }
+        });
+
+        return transactionSummary;
     }
 }

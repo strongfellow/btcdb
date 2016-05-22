@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.strongfellow.btcdb.response.BlockSummary;
+import com.strongfellow.btcdb.response.TransactionSummary;
+
 @Controller
 public class MVCController {
 
@@ -32,7 +35,6 @@ public class MVCController {
             @PathVariable("hash") String hash,
             @ModelAttribute("model") ModelMap model) throws IOException, DecoderException {
         TransactionSummary ts = readService.getTransactionSummary(hash);
-        BlockSummary bs = readService.getBlockSummary(hash);
         model.addAttribute("transactionHash", hash);
         model.addAttribute("transactionSummary", ts);
         return "transaction-summary";

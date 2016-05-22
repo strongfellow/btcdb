@@ -1,4 +1,4 @@
-package com.strongfellow.btcdb.components;
+package com.strongfellow.btcdb.response;
 
 import java.util.ArrayList;
 import java.util.List;
