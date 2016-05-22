@@ -16,4 +16,9 @@ public class ReadOnlyService {
         return this.db.getBlockSummary(block);
     }
 
+    public TransactionSummary getTransactionSummary(String hash) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }

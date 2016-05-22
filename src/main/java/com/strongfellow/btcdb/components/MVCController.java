@@ -26,4 +26,16 @@ public class MVCController {
         model.addAttribute("blockSummary", bs);
         return "block-summary";
     }
+
+    @RequestMapping(value="/api/transaction/{hash}/summary.html", method=RequestMethod.GET)
+    public String transactionSummary(
+            @PathVariable("hash") String hash,
+            @ModelAttribute("model") ModelMap model) throws IOException, DecoderException {
+        TransactionSummary ts = readService.getTransactionSummary(hash);
+        BlockSummary bs = readService.getBlockSummary(hash);
+        model.addAttribute("transactionHash", hash);
+        model.addAttribute("transactionSummary", ts);
+        return "transaction-summary";
+    }
+
 }
