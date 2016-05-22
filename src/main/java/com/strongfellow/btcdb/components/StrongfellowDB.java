@@ -29,6 +29,8 @@ import com.strongfellow.btcdb.protocol.Output;
 import com.strongfellow.btcdb.protocol.Transaction;
 import com.strongfellow.btcdb.response.BlockSummary;
 import com.strongfellow.btcdb.response.TransactionSummary;
+import com.strongfellow.btcdb.response.Txin;
+import com.strongfellow.btcdb.response.Txout;
 import com.strongfellow.btcdb.script.ParsedScript;
 import com.strongfellow.btcdb.script.UnknownOpCodeException;
 
@@ -360,6 +362,15 @@ public class StrongfellowDB {
         return result;
     }
 
+    private static String hash(byte[] hash) {
+        byte[] tmp = new byte[hash.length];
+        for (int i = 0; i < tmp.length; i++) {
+            tmp[i] = hash[hash.length - (i + 1)];
+        }
+        return Hex.encodeHexString(tmp);
+    }
+
+
     public BlockSummary getBlockSummary(String block) throws IOException, DecoderException {
         Map<String, Object> map = new HashMap<>();
         map.put("hash", hash(block));
@@ -375,8 +386,7 @@ public class StrongfellowDB {
                 result.setVersion(rs.getLong("version"));
                 result.setNonce(rs.getLong("nonce"));
                 byte[] merkle = rs.getBytes("merkle");
-                ArrayUtils.reverse(merkle);
-                result.setMerkle(Hex.encodeHexString(merkle));
+                result.setMerkle(rs.wasNull() ? null : hash(merkle));
                 return result;
             }
 
@@ -394,8 +404,7 @@ public class StrongfellowDB {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
                 byte[] parent = rs.getBytes("parent");
-                ArrayUtils.reverse(parent);
-                blockSummary.setParent(Hex.encodeHexString(parent));
+                blockSummary.setParent(rs.wasNull() ? null : hash(parent));
                 int h = rs.getInt("height");
                 if (!rs.wasNull()) {
                     blockSummary.setHeight(h);
@@ -407,8 +416,7 @@ public class StrongfellowDB {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
                 byte[] child = rs.getBytes("child");
-                ArrayUtils.reverse(child);
-                blockSummary.addChild(Hex.encodeHexString(child));
+                blockSummary.addChild(rs.wasNull() ? null : hash(child));
             }
         });
 
@@ -499,6 +507,55 @@ public class StrongfellowDB {
             }
         });
 
+
+        List<Txout> txouts = template.query(getTxouts(), params, new RowMapper<Txout>() {
+
+            @Override
+            public Txout mapRow(ResultSet rs, int rowNum) throws SQLException {
+                Txout t = new Txout();
+                byte[] address = rs.getBytes("address");
+                try {
+                    t.setAddress(rs.wasNull() ? null : address);
+                } catch (DigestException e) {
+                    throw new SQLException(e);
+                }
+                t.setValue(rs.getLong("value"));
+                return t;
+            }
+        });
+
+        List<Txin> txins = template.query(getTxins(), params, new RowMapper<Txin>() {
+
+            @Override
+            public Txin mapRow(ResultSet rs, int rowNum) throws SQLException {
+                Txin t = new Txin();
+                byte[] address = rs.getBytes("address");
+                try {
+                    t.setAddress(rs.wasNull() ? null : address);
+                } catch (DigestException e) {
+                    throw new SQLException(e);
+                }
+                t.setValue(rs.getLong("value"));
+                byte[] tx = rs.getBytes("tx");
+                t.setTxout(rs.wasNull() ? null : hash(tx));
+                t.setIndex(rs.getInt("index"));
+                return t;
+            }
+        });
+        for (Txin i : txins) {
+            transactionSummary.addInput(i);
+        }
+        for (Txout o : txouts) {
+            transactionSummary.addOutput(o);
+        }
         return transactionSummary;
+    }
+
+    private String getTxouts() throws IOException {
+        return loadQuery("reads/transaction/get_txouts");
+    }
+
+    private String getTxins() throws IOException {
+        return loadQuery("reads/transaction/get_txins");
     }
 }
