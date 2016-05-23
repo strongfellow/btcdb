@@ -388,11 +388,18 @@ public class ParsedScript {
 
 
     public byte[] getPublicKey() {
-        if (!isPayToPublicKey()) {
-            throw new RuntimeException();
-        } else {
+        if (isPayToPublicKey()) {
             ByteArrayWrapper baw = scriptElements.get(0).data;
             return Hashes.hash160(script, baw.offset, baw.length);
+        } else if (isPayToPubKeyHash()) {
+            ByteArrayWrapper baw = scriptElements.get(2).data;
+            byte[] pk = new byte[baw.length];
+            for (int i = 0; i < pk.length; i++) {
+                pk[i] = script[baw.offset + i];
+            }
+            return pk;
+        } else {
+            throw new RuntimeException("can't get public key from this type of script");
         }
     }
 

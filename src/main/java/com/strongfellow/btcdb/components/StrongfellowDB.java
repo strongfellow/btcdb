@@ -129,6 +129,10 @@ public class StrongfellowDB {
         return loadQuery("block/insert_coinbase");
     }
 
+    private String insertPublicKeys() throws IOException {
+        return loadQuery("transaction/insert_public_key_hashes");
+    }
+
     private String insertPublicKeyTxouts() throws IOException {
         return loadQuery("transaction/ensure_pks");
     }
@@ -455,6 +459,32 @@ public class StrongfellowDB {
         });
 
         return blockSummary;
+    }
+
+    public void addHash160s(List<Transaction> transactions) throws UnknownOpCodeException, DataAccessException, IOException {
+        Map<String, Object> params = new HashMap<>();
+        List<Object[]> hash160s = new ArrayList<>();
+        params.put("addresses", hash160s);
+        for (Transaction transaction : transactions) {
+            for (Output txout : transaction.getOutputs()) {
+                byte[] script = txout.getScript();
+                ParsedScript parsedScript = ParsedScript.from(script);
+                if (parsedScript.isPayToPublicKey()) {
+                    byte[] pk = parsedScript.getPublicKey();
+                    hash160s.add(new Object[] {pk});
+                } else if (parsedScript.isPayToPubKeyHash()) {
+                    byte[] pk = parsedScript.getPublicKey();
+                    hash160s.add(new Object[] {pk});
+                }
+                if (hash160s.size() == 500) {
+                    template.update(insertPublicKeys(), params);
+                    hash160s.clear();
+                }
+            }
+        }
+        if (hash160s.size() > 0) {
+            template.update(insertPublicKeys(), params);
+        }
     }
 
     public void addScripts(List<Transaction> transactions) throws UnknownOpCodeException, DigestException, DataAccessException, IOException {

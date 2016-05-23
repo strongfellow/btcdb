@@ -7,6 +7,8 @@ DROP TABLE IF EXISTS "coinbase";
 DROP TABLE IF EXISTS "p2sh_scripts";
 DROP TABLE IF EXISTS "p2pkh_scripts";
 DROP TABLE IF EXISTS "public_key_scripts";
+DROP TABLE IF EXISTS "public_keys";
+DROP TABLE IF EXISTS "script_hashes";
 DROP TABLE IF EXISTS "spends";
 DROP TABLE IF EXISTS "values";
 DROP TABLE IF EXISTS "txouts";

@@ -87,22 +87,35 @@ CREATE TABLE IF NOT EXISTS "spends"(
   FOREIGN KEY("txout_id") REFERENCES "txouts"("txout_id")
 );
 
+CREATE TABLE IF NOT EXISTS "script_hashes"(
+  "script_hash_id" INTEGER NOT NULL PRIMARY KEY,
+  "script_hash" BLOB UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "public_keys"(
+  "public_key_id" INTEGER NOT NULL PRIMARY KEY,
+  "hash160" BLOB UNIQUE NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS "public_key_scripts"(
   "txout_id" INTEGER NOT NULL PRIMARY KEY,
-  "public_key" BLOB NOT NULL,
-  FOREIGN KEY("txout_id") REFERENCES "txouts"("txout_id")
+  "public_key_id" INTEGER NOT NULL,
+  FOREIGN KEY("txout_id") REFERENCES "txouts"("txout_id"),
+  FOREIGN KEY("public_key_id") REFERENCES "public_keys"("public_key_id")
 );
 
 CREATE TABLE IF NOT EXISTS "p2pkh_scripts"(
   "txout_id" INTEGER NOT NULL PRIMARY KEY,
-  "public_key_hash" BLOB NOT NULL,
-  FOREIGN KEY("txout_id") REFERENCES "txouts"("txout_id")
+  "public_key_id" INTEGER NOT NULL,
+  FOREIGN KEY("txout_id") REFERENCES "txouts"("txout_id"),
+  FOREIGN KEY("public_key_id") REFERENCES "public_keys"("public_key_id")
 );
 
 CREATE TABLE IF NOT EXISTS "p2sh_scripts"(
   "txout_id" INTEGER NOT NULL PRIMARY KEY,
-  "script_hash" BLOB NOT NULL,
-  FOREIGN KEY("txout_id") REFERENCES "txouts"("txout_id")
+  "script_hash_id" INTEGER NOT NULL,
+  FOREIGN KEY("txout_id") REFERENCES "txouts"("txout_id"),
+  FOREIGN KEY("script_hash_id") REFERENCES "script_hashes"("script_hash_id")
 );
 
 CREATE TABLE IF NOT EXISTS "coinbase"(
