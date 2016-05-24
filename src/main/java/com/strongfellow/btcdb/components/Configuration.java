@@ -16,6 +16,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import com.ryantenney.metrics.spring.config.annotation.EnableMetrics;
 import com.strongfellow.btcdb.logic.BlockReader;
 import com.strongfellow.btcdb.logic.BlockWriter;
 import com.strongfellow.btcdb.protocol.Block;
@@ -23,6 +24,7 @@ import com.strongfellow.btcdb.protocol.Transaction;
 
 @org.springframework.context.annotation.Configuration
 @EnableTransactionManagement
+@EnableMetrics
 public class Configuration {
 
     private static final MediaType BLOCK_MEDIATYPE = new MediaType("strongfellow", "block");
