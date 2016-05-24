@@ -293,14 +293,14 @@ public class StrongfellowDB {
                     byte[] pk = parsedScript.getPublicKey();
                     Object[] row = new Object[] { tx, i, pk };
                     maybeUpdate(pkQuery, pkMap, pkRows, row);
-                    String base58check = Hashes.publicKeyHashAddressToBase58(pk);
-                    logger.info("public key: {}", base58check);
+                    // String base58check = Hashes.publicKeyHashAddressToBase58(pk);
+                    // logger.info("public key: {}", base58check);
                 } else if (parsedScript.isPayToPubKeyHash()) {
                     byte[] pk = parsedScript.getPublicKey();
                     Object[] row = new Object[] { tx, i, pk };
                     maybeUpdate(pkHashQuery, pkHashMap, pkHashRows, row);
-                    String base58check = Hashes.publicKeyHashAddressToBase58(pk);
-                    logger.info("public key: {}", base58check);
+                    // String base58check = Hashes.publicKeyHashAddressToBase58(pk);
+                    // logger.info("public key: {}", base58check);
                 }
                 i++;
             }
