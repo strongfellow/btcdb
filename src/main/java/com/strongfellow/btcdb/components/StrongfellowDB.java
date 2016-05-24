@@ -270,6 +270,8 @@ public class StrongfellowDB {
                     int n = template.update(writeQueries.updateDescendents(), map);
                     if (n == 0) {
                         break;
+                    } else {
+                        logger.info("we updated {} descendents", n);
                     }
                 }
             } catch(EmptyResultDataAccessException e) {

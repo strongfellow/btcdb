@@ -1,0 +1,8 @@
+- show whether we're spent or not
+- show a nicer page for coinbase
+- say what blocks a transaction is included in
+- create an address page
+- add a full block viewer
+- load the whole chain
+- what goes wrong when we load 87a157f3fd88ac7907c05fc55e271dc4acdc5605d187d646604ca8c0e9382e03
+
