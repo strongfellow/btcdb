@@ -10,7 +10,11 @@ JOIN "spends" USING("txin_id")
 JOIN "txouts" USING("txout_id")
 JOIN "values" USING("txout_id")
 JOIN "transactions" AS "tx" ON "tx"."transaction_id" = "txouts"."transaction_id"
-LEFT JOIN "public_key_scripts" USING("txout_id")
+LEFT JOIN
+  (SELECT "txout_id", "public_key_id" FROM "public_key_scripts"
+   UNION
+   SELECT  "txout_id", "public_key_id" FROM "p2pkh_scripts")
+USING("txout_id")
 LEFT JOIN "public_keys" USING("public_key_id")
 LEFT JOIN "transactions_in_blocks" USING("transaction_id")
 WHERE "transactions"."hash" = :hash
