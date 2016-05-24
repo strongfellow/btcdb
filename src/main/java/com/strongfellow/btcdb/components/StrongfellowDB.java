@@ -281,7 +281,7 @@ public class StrongfellowDB {
         String pkHashQuery = writeQueries.insertPublicKeyHashTxouts();
         List<Object[]> pkHashRows = new ArrayList<>();
         Map<String, Object> pkHashMap = new HashMap<>();
-        pkHashMap.put("pks", pkRows);
+        pkHashMap.put("pks", pkHashRows);
 
         for (Transaction t : transactions) {
             byte[] tx = t.getMetadata().getHash();
@@ -299,6 +299,8 @@ public class StrongfellowDB {
                     byte[] pk = parsedScript.getPublicKey();
                     Object[] row = new Object[] { tx, i, pk };
                     maybeUpdate(pkHashQuery, pkHashMap, pkHashRows, row);
+                    String base58check = Hashes.publicKeyHashAddressToBase58(pk);
+                    logger.info("public key: {}", base58check);
                 }
                 i++;
             }
