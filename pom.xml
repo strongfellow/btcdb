@@ -107,12 +107,10 @@
 			<artifactId>spring-jdbc</artifactId>
 			<version>${spring.version}</version>
 		</dependency>
-		<dependencies>
     <dependency>
         <groupId>io.dropwizard.metrics</groupId>
         <artifactId>metrics-core</artifactId>
         <version>3.1.0</version>
     </dependency>
-</dependencies>
-	</dependencies>
+    </dependencies>
 </project>
