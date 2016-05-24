@@ -14,7 +14,7 @@ import com.strongfellow.btcdb.response.TransactionSummary;
 public class ReadOnlyService {
 
     @Autowired
-    private StrongfellowDB db;
+    private ReadOnlyRepository db;
 
     public BlockSummary getBlockSummary(String block) throws IOException, DecoderException {
         return this.db.getBlockSummary(block);

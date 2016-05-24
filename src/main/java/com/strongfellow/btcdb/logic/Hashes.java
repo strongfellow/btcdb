@@ -4,7 +4,10 @@ import java.math.BigInteger;
 import java.security.DigestException;
 import java.security.MessageDigest;
 
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 
 public class Hashes {
@@ -75,6 +78,21 @@ public class Hashes {
             }
         }
         return result.reverse().toString();
+    }
+
+    public static byte[] fromBigEndian(String hex) throws DecoderException {
+        byte[] result = Hex.decodeHex(hex.toCharArray());
+        ArrayUtils.reverse(result);
+        return result;
+    }
+
+
+    public static String toBigEndian(byte[] hash) {
+        byte[] tmp = new byte[hash.length];
+        for (int i = 0; i < tmp.length; i++) {
+            tmp[i] = hash[hash.length - (i + 1)];
+        }
+        return Hex.encodeHexString(tmp);
     }
 
 }
