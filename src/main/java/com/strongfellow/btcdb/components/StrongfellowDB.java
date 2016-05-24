@@ -40,15 +40,29 @@ public class StrongfellowDB {
     @Autowired
     WriteQueries writeQueries;
 
-    private void insertBlockchain(Block block) throws DataAccessException, IOException {
+    private void maybeUpdate(String query, Map<String, Object> map, List<Object[]> rows, Object[] row) {
+        if ((rows.size() + 1) * row.length >= 1000) {
+            template.update(query, map);
+            rows.clear();
+        }
+        rows.add(row);
+    }
+
+    public void insertBlock(Block block) throws DataAccessException, IOException {
         Map<String, Object> map = new HashMap<>();
         map.put("previous", block.getHeader().getPreviousBlock());
         map.put("hash", block.getMetadata().getHash());
         template.update(writeQueries.ensureBlocks(), map);
+    }
+
+    public void insertBlockchain(Block block) throws DataAccessException, IOException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("previous", block.getHeader().getPreviousBlock());
+        map.put("hash", block.getMetadata().getHash());
         template.update(writeQueries.insertBlockchain(), map);
     }
 
-    private void insertBlockDetails(Block block) throws DataAccessException, IOException {
+    public  void insertBlockDetails(Block block) throws DataAccessException, IOException {
         Map<String, Object> map = new HashMap<>();
         map.put("hash", block.getMetadata().getHash());
         map.put("size", block.getMetadata().getSize());
@@ -60,15 +74,7 @@ public class StrongfellowDB {
         template.update(writeQueries.insertBlocksDetails(), map);
     }
 
-    private void maybeUpdate(String query, Map<String, Object> map, List<Object[]> rows, Object[] row) {
-        if ((rows.size() + 1) * row.length >= 1000) {
-            template.update(query, map);
-            rows.clear();
-        }
-        rows.add(row);
-    }
-
-    private void ensureTransactionsAndTransactionReferences(Block block) throws DataAccessException, IOException {
+    public void ensureTransactionsAndTransactionReferences(Block block) throws DataAccessException, IOException {
         String query = writeQueries.ensureTransactions();
         Map<String, Object> map = new HashMap<>();
         List<Object[]> rows = new ArrayList<>();
@@ -87,7 +93,7 @@ public class StrongfellowDB {
         }
     }
 
-    private void associateTransactionsWithBlock(Block block) throws DataAccessException, IOException {
+    public void associateTransactionsWithBlock(Block block) throws DataAccessException, IOException {
         String query = writeQueries.associateTransactionsWithBlocks();
         Map<String, Object> map = new HashMap<>();
         map.put("hash", block.getMetadata().getHash());
@@ -104,7 +110,7 @@ public class StrongfellowDB {
         }
     }
 
-    private void ensureTxouts(Block block) throws DataAccessException, IOException {
+    public void ensureTxouts(Block block) throws DataAccessException, IOException {
         String query = writeQueries.ensureTxouts();
         List<Object[]> rows = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
@@ -124,7 +130,7 @@ public class StrongfellowDB {
         }
     }
 
-    private void ensureTxins(Block block) throws DataAccessException, IOException {
+    public void ensureTxins(Block block) throws DataAccessException, IOException {
         String query = writeQueries.ensureTxins();
         List<Object[]> rows = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
@@ -143,21 +149,7 @@ public class StrongfellowDB {
         }
     }
 
-    public void addBlock(Block block) throws UnknownOpCodeException, IOException {
-        insertBlockchain(block);
-        insertBlockDetails(block);
-        ensureTransactionsAndTransactionReferences(block);
-        ensureTransactionDetails(block.getTransactions());
-        associateTransactionsWithBlock(block);
-        ensureTxouts(block);
-        ensureTxins(block);
-        ensureSpends(block);
-        ensureValues(block);
-        updateDescendents(block.getHeader().getPreviousBlock());
-        insertCoinbase(block);
-    }
-
-    private void ensureTransactionDetails(List<Transaction> transactions) throws DataAccessException, IOException {
+    public void ensureTransactionDetails(List<Transaction> transactions) throws DataAccessException, IOException {
         String query = writeQueries.ensureTransactionDetails();
         List<Object[]> rows = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
@@ -174,7 +166,7 @@ public class StrongfellowDB {
         }
     }
 
-    private void insertCoinbase(Block block) throws DataAccessException, IOException {
+    public void insertCoinbase(Block block) throws DataAccessException, IOException {
         Transaction t = block.getTransactions().get(0);
         Map<String, byte[]> params = new HashMap<>();
         params.put("tx", t.getMetadata().getHash());
@@ -182,7 +174,7 @@ public class StrongfellowDB {
         template.update(writeQueries.insertCoinbase(), params);
     }
 
-    private void updateDescendents(byte[] previous) throws IOException {
+    public void updateDescendents(byte[] previous) throws IOException {
         Map<String, Object> map = new HashMap<>();
         map.put("hash", previous);
 
@@ -205,10 +197,9 @@ public class StrongfellowDB {
                     + " this is a normal thing if blocks are received out of order",
                     Hashes.toBigEndian(previous));
         }
-
     }
 
-    private void ensureSpends(Block block) throws IOException {
+    public void ensureSpends(Block block) throws IOException {
         String sql = writeQueries.ensureSpends();
         List<Object[]> rows = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
@@ -229,7 +220,7 @@ public class StrongfellowDB {
         }
     }
 
-    private void ensureValues(Block block) throws IOException {
+    public void ensureValues(Block block) throws IOException {
         String sql = writeQueries.ensureValues();
         List<Object[]> rows = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();

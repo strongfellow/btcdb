@@ -28,7 +28,18 @@ public class DatabaseBTCListener implements BTCListener {
         String hash = Util.bigEndianHash(block.getMetadata().getHash());
         logger.info("begin processing block hash {}", hash);
         try {
-            database.addBlock(block);
+            database.insertBlock(block);
+            database.insertBlockchain(block);
+            database.insertBlockDetails(block);
+            database.ensureTransactionsAndTransactionReferences(block);
+            database.ensureTransactionDetails(block.getTransactions());
+            database.associateTransactionsWithBlock(block);
+            database.ensureTxouts(block);
+            database.ensureTxins(block);
+            database.ensureSpends(block);
+            database.ensureValues(block);
+            database.updateDescendents(block.getHeader().getPreviousBlock());
+            database.insertCoinbase(block);
             database.addHash160s(block.getTransactions());
             database.addScripts(block.getTransactions());
         } catch(UnknownOpCodeException | IOException e) {
