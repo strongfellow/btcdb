@@ -65,4 +65,8 @@ public class ReadQueries {
         return queryCache.loadQuery("reads/transaction/get_txin_addresses");
     }
 
+    public String getBlocksForTransaction() throws IOException {
+        return queryCache.loadQuery("reads/transaction/get_blocks");
+    }
+
 }

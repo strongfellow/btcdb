@@ -12,6 +12,7 @@ public class TransactionSummary {
     private Long version;
     private List<Txin> inputs;
     private List<Txout> outputs;
+    private List<BlockPointer> blockPointers;
 
     public List<Txin> getInputs() {
         return inputs;
@@ -67,4 +68,12 @@ public class TransactionSummary {
     public void setHash(String hash) {
         this.hash = hash;
     }
+
+    public void setBlockPointers(List<BlockPointer> blocks) {
+        this.blockPointers = blocks;
+    }
+    public List<BlockPointer> getBlockPointers() {
+        return this.blockPointers;
+    }
+
 }

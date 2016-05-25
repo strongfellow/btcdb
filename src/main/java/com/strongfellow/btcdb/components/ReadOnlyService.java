@@ -31,6 +31,7 @@ public class ReadOnlyService {
         db.addInputs(ts);
         db.addOutputAddresses(ts);
         db.addInputAddresses(ts);
+        db.addBlocks(ts);
         return ts;
     }
 

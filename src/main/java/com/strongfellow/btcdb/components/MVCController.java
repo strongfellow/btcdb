@@ -36,7 +36,6 @@ public class MVCController {
             @PathVariable("hash") String hash,
             @ModelAttribute("model") ModelMap model) throws IOException, DecoderException {
         TransactionSummary ts = readService.getTransactionSummary(hash);
-        model.addAttribute("transactionHash", hash);
         model.addAttribute("transactionSummary", ts);
         return "transaction-summary";
     }

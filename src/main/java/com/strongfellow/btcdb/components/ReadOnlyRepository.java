@@ -20,6 +20,7 @@ import org.springframework.stereotype.Repository;
 
 import com.codahale.metrics.annotation.Timed;
 import com.strongfellow.btcdb.logic.Hashes;
+import com.strongfellow.btcdb.response.BlockPointer;
 import com.strongfellow.btcdb.response.BlockSummary;
 import com.strongfellow.btcdb.response.Spend;
 import com.strongfellow.btcdb.response.TransactionSummary;
@@ -263,6 +264,30 @@ public class ReadOnlyRepository {
                 }
             }
         });
+    }
+
+    public void addBlocks(TransactionSummary transactionSummary) throws DataAccessException, IOException, DecoderException {
+        String hash = transactionSummary.getHash();
+        Map<String, Object> params = new HashMap<>();
+        params.put("hash", Hashes.fromBigEndian(hash));
+        List<BlockPointer> blocks = new ArrayList<BlockPointer>();
+        template.query(readQueries.getBlocksForTransaction(), params, new RowCallbackHandler() {
+
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                BlockPointer blockPointer = new BlockPointer();
+                blocks.add(blockPointer);
+                byte[] block = rs.getBytes("block");
+                if (rs.wasNull()) {
+                    throw new SQLException("we expect to get a block back");
+                } else {
+                    blockPointer.setHash(block);
+                    int height = rs.getInt("height");
+                    blockPointer.setHeight(rs.wasNull() ? null : height);
+                }
+            }
+        });
+        transactionSummary.setBlockPointers(blocks);
     }
 
 }
