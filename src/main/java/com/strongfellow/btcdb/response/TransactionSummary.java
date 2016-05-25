@@ -1,17 +1,17 @@
 package com.strongfellow.btcdb.response;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class TransactionSummary {
 
+    private String hash;
     private Long outputValue;
     private Long fee;
     private Long size;
     private Long lockTime;
     private Long version;
-    private final List<Txin> inputs = new ArrayList<>();
-    private final List<Txout> outputs = new ArrayList<>();
+    private List<Txin> inputs;
+    private List<Txout> outputs;
 
     public List<Txin> getInputs() {
         return inputs;
@@ -21,12 +21,12 @@ public class TransactionSummary {
         return outputs;
     }
 
-    public void addInput(Txin input) {
-        inputs.add(input);
+    public void setOutputs(List<Txout> outputs) {
+        this.outputs = outputs;
     }
 
-    public void addOutput(Txout output) {
-        outputs.add(output);
+    public void setInputs(List<Txin> inputs) {
+        this.inputs = inputs;
     }
 
     public Long getOutputValue() {
@@ -58,5 +58,13 @@ public class TransactionSummary {
     }
     public void setVersion(Long version) {
         this.version = version;
+    }
+
+    public String getHash() {
+        return hash;
+    }
+
+    public void setHash(String hash) {
+        this.hash = hash;
     }
 }

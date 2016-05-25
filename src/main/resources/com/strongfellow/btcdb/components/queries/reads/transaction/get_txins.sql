@@ -1,6 +1,5 @@
 
-
-SELECT "public_keys"."hash160" AS "address",
+SELECT "txins"."index" AS "row",
        "values"."value" AS "value",
        "tx"."hash" AS "tx",
        "txouts"."index" AS "index"
@@ -10,12 +9,6 @@ JOIN "spends" USING("txin_id")
 JOIN "txouts" USING("txout_id")
 JOIN "values" USING("txout_id")
 JOIN "transactions" AS "tx" ON "tx"."transaction_id" = "txouts"."transaction_id"
-LEFT JOIN
-  (SELECT "txout_id", "public_key_id" FROM "public_key_scripts"
-   UNION
-   SELECT  "txout_id", "public_key_id" FROM "p2pkh_scripts")
-USING("txout_id")
-LEFT JOIN "public_keys" USING("public_key_id")
 LEFT JOIN "transactions_in_blocks" USING("transaction_id")
 WHERE "transactions"."hash" = :hash
-  AND ("transactions_in_blocks"."index" != 0 OR "txins"."index" != 0)
+AND ("transactions_in_blocks"."index" != 0 OR "txins"."index" != 0)

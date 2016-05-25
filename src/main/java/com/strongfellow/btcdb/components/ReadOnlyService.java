@@ -24,7 +24,14 @@ public class ReadOnlyService {
 
     @Transactional(readOnly=true)
     public TransactionSummary getTransactionSummary(String hash) throws DataAccessException, DecoderException, IOException {
-        return this.db.getTransactionSummmary(hash);
+        TransactionSummary ts = new TransactionSummary();
+        ts.setHash(hash);
+        db.getTransactionSummmary(ts);
+        db.addOutputs(ts);
+        db.addInputs(ts);
+        db.addOutputAddresses(ts);
+        db.addInputAddresses(ts);
+        return ts;
     }
 
 }

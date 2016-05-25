@@ -57,4 +57,12 @@ public class ReadQueries {
         return queryCache.loadQuery("reads/get_block_height");
     }
 
+    public String getOutputAddresses() throws IOException {
+        return queryCache.loadQuery("reads/transaction/get_txout_addresses");
+    }
+
+    public String getInputAddresses() throws IOException {
+        return queryCache.loadQuery("reads/transaction/get_txin_addresses");
+    }
+
 }

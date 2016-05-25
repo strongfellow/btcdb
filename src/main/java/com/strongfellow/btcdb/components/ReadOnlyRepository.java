@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.security.DigestException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.codahale.metrics.annotation.Timed;
 import com.strongfellow.btcdb.logic.Hashes;
 import com.strongfellow.btcdb.response.BlockSummary;
 import com.strongfellow.btcdb.response.Spend;
@@ -118,8 +120,9 @@ public class ReadOnlyRepository {
         return blockSummary;
     }
 
-    public TransactionSummary getTransactionSummmary(String hash) throws DecoderException, DataAccessException, IOException {
-        TransactionSummary transactionSummary = new TransactionSummary();
+    @Timed
+    public void getTransactionSummmary(TransactionSummary transactionSummary) throws DecoderException, DataAccessException, IOException {
+        String hash = transactionSummary.getHash();
         Map<String, Object> params = new HashMap<>();
         params.put("hash", Hashes.fromBigEndian(hash));
 
@@ -136,66 +139,130 @@ public class ReadOnlyRepository {
                 transactionSummary.setOutputValue(rs.wasNull() ? null : outputs);
             }
         });
+    }
 
+    public void addOutputs(TransactionSummary transactionSummary) throws DecoderException, DataAccessException, IOException {
+        String hash = transactionSummary.getHash();
+        Map<String, Object> params = new HashMap<>();
+        params.put("hash", Hashes.fromBigEndian(hash));
 
         Map<Integer, Txout> m = new HashMap<>();
         template.query(readQueries.getTxouts(), params, new RowCallbackHandler() {
-
             @Override
             public void processRow(ResultSet rs) throws SQLException {
+                int row = rs.getInt("row");
+                if (!m.containsKey(row)) {
+                    m.put(row, new Txout());
+                }
+                Txout t = m.get(row);
+                t.setValue(rs.getLong("value"));
                 Spend spend = null;
                 byte[] tx = rs.getBytes("tx");
                 if (!rs.wasNull()) {
                     spend = new Spend();
                     spend.setTx(Hashes.toBigEndian(tx));
                     spend.setIndex(rs.getInt("index"));
-                }
-
-                int row = rs.getInt("row");
-                if (!rs.wasNull() && m.containsKey(row)) {
-                    m.get(row).getSpends().add(spend);
-                } else {
-                    Txout t = new Txout();
-                    transactionSummary.addOutput(t);
-                    m.put(row, t);
-                    byte[] address = rs.getBytes("address");
-                    try {
-                        t.setAddress(rs.wasNull() ? null : address);
-                    } catch (DigestException e) {
-                        throw new SQLException(e);
-                    }
-                    t.setValue(rs.getLong("value"));
-                    if (spend != null) {
-                        t.addSpend(spend);
-                    }
+                    t.addSpend(spend);
                 }
             }
         });
 
-
-        List<Txin> txins = template.query(readQueries.getTxins(), params, new RowMapper<Txin>() {
-
-            @Override
-            public Txin mapRow(ResultSet rs, int rowNum) throws SQLException {
-                Txin t = new Txin();
-                byte[] address = rs.getBytes("address");
-                try {
-                    t.setAddress(rs.wasNull() ? null : address);
-                } catch (DigestException e) {
-                    throw new SQLException(e);
-                }
-                t.setValue(rs.getLong("value"));
-                byte[] tx = rs.getBytes("tx");
-                t.setTxout(rs.wasNull() ? null : Hashes.toBigEndian(tx));
-                t.setIndex(rs.getInt("index"));
-                return t;
+        List<Txout> outputs = new ArrayList<Txout>(m.size());
+        for (int i = 0; i < m.size(); i++) {
+            if (!m.containsKey(i)) {
+                throw new RuntimeException();
+            } else {
+                outputs.add(i, m.get(i));
             }
-        });
-        for (Txin i : txins) {
-            transactionSummary.addInput(i);
         }
-        return transactionSummary;
+        transactionSummary.setOutputs(outputs);
     }
 
+    public void addOutputAddresses(TransactionSummary transactionSummary) throws DecoderException, DataAccessException, IOException {
+        String hash = transactionSummary.getHash();
+        Map<String, Object> params = new HashMap<>();
+        params.put("hash", Hashes.fromBigEndian(hash));
+
+        template.query(readQueries.getOutputAddresses(), params, new RowCallbackHandler() {
+
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                int row = rs.getInt("row");
+                if (rs.wasNull()) {
+                    throw new RuntimeException();
+                } else {
+                    byte[] address = rs.getBytes("address");
+                    if (!rs.wasNull()) {
+                        try {
+                            transactionSummary.getOutputs().get(row).setAddress(address);
+                        } catch (DigestException e) {
+                            throw new SQLException(e);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    public void addInputs(TransactionSummary transactionSummary) throws DecoderException, DataAccessException, IOException {
+        String hash = transactionSummary.getHash();
+        Map<String, Object> params = new HashMap<>();
+        params.put("hash", Hashes.fromBigEndian(hash));
+
+        Map<Integer, Txin> m = new HashMap<Integer, Txin>();
+        template.query(readQueries.getTxins(), params, new RowCallbackHandler() {
+
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                int row = rs.getInt("row");
+                if (rs.wasNull()) {
+                    throw new SQLException();
+                }
+                Txin t = new Txin();
+                t.setValue(rs.getLong("value"));
+                byte[] tx = rs.getBytes("tx");
+                if (!rs.wasNull()) {
+                    t.setTxout(Hashes.toBigEndian(tx));
+                    t.setIndex(rs.getInt("index"));
+                }
+                m.put(row, t);
+            }
+        });
+
+        List<Txin> inputs = new ArrayList<Txin>(m.size());
+        for (int i = 0; i < m.size(); i++) {
+            if (!m.containsKey(i)) {
+                throw new RuntimeException();
+            }
+            inputs.add(i, m.get(i));
+        }
+        transactionSummary.setInputs(inputs);
+    }
+
+    public void addInputAddresses(TransactionSummary transactionSummary) throws DataAccessException, IOException, DecoderException {
+        String hash = transactionSummary.getHash();
+        Map<String, Object> params = new HashMap<>();
+        params.put("hash", Hashes.fromBigEndian(hash));
+
+        template.query(readQueries.getInputAddresses(), params, new RowCallbackHandler() {
+
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                int row = rs.getInt("row");
+                if (rs.wasNull()) {
+                    throw new RuntimeException();
+                } else {
+                    byte[] address = rs.getBytes("address");
+                    if (!rs.wasNull()) {
+                        try {
+                            transactionSummary.getInputs().get(row).setAddress(address);
+                        } catch (DigestException e) {
+                            throw new SQLException(e);
+                        }
+                    }
+                }
+            }
+        });
+    }
 
 }

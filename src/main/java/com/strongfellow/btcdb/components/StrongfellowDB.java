@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.annotation.Timed;
 import com.strongfellow.btcdb.logic.Hashes;
 import com.strongfellow.btcdb.protocol.Block;
@@ -48,6 +46,7 @@ public class StrongfellowDB {
 
     @Autowired
     public void setMetricsRegistry(MetricRegistry r) {
+        /**
         this.metricRegistry = r;
         final Slf4jReporter reporter = Slf4jReporter.forRegistry(r)
                 .outputTo(logger)
@@ -55,6 +54,7 @@ public class StrongfellowDB {
                 .convertDurationsTo(TimeUnit.MILLISECONDS)
                 .build();
         reporter.start(10, TimeUnit.SECONDS);
+         */
     }
 
     public StrongfellowDB() {
