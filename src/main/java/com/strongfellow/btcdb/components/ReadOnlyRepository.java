@@ -34,6 +34,10 @@ public class ReadOnlyRepository {
     NamedParameterJdbcTemplate template;
 
     @Autowired
+    public void setQueryCache(QueryCache qc) {
+        this.readQueries = new ReadQueries(qc);
+    }
+
     private ReadQueries readQueries;
 
     public BlockSummary getBlockSummary(String block) throws IOException, DecoderException {

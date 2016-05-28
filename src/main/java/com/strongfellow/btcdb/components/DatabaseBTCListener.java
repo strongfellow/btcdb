@@ -6,6 +6,7 @@ import java.security.DigestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,8 +20,12 @@ public class DatabaseBTCListener implements BTCListener {
 
     private static final Logger logger = LoggerFactory.getLogger(DatabaseBTCListener.class);
 
-    @Autowired
     private StrongfellowDB database;
+
+    @Autowired
+    public void setDatabase(StrongfellowDB database) {
+        this.database = database;
+    }
 
     @Override
     @Transactional
@@ -28,8 +33,9 @@ public class DatabaseBTCListener implements BTCListener {
         String hash = Util.bigEndianHash(block.getMetadata().getHash());
         logger.info("begin processing block hash {}", hash);
         try {
-            database.insertBlock(block);
-            database.insertBlockchain(block);
+
+            insertBlockChain(block);
+
             database.insertBlockDetails(block);
             database.ensureTransactionsAndTransactionReferences(block);
             database.ensureTransactionDetails(block.getTransactions());
@@ -38,7 +44,6 @@ public class DatabaseBTCListener implements BTCListener {
             database.ensureTxins(block);
             database.ensureSpends(block);
             database.ensureValues(block);
-            database.updateDescendents(block.getHeader().getPreviousBlock());
             database.insertCoinbase(block);
             database.addHash160s(block.getTransactions());
             database.addScripts(block.getTransactions());
@@ -57,4 +62,17 @@ public class DatabaseBTCListener implements BTCListener {
         logger.info("finished processing tx hash {}", hash);
     }
 
+    @Override
+    public void processHeader(Block block) throws DataAccessException, IOException {
+        insertBlockChain(block);
+    }
+
+    private void insertBlockChain(Block block) throws DataAccessException, IOException {
+        byte[] hash = block.getMetadata().getHash();
+        byte[] parent = block.getHeader().getPreviousBlock();
+        database.insertBlock(hash, parent);
+        database.insertBlockchain(hash, parent);
+        database.updateDescendents(parent);
+        database.updateTips(hash);
+    }
 }

@@ -7,4 +7,5 @@ public interface BTCListener {
 
     void processBlock(Block block) throws Exception;
     void processTransaction(Transaction tx) throws Exception;
+    void processHeader(Block block) throws Exception;
 }

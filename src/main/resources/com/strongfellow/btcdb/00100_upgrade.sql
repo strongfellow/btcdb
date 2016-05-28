@@ -16,14 +16,13 @@ CREATE TABLE IF NOT EXISTS "chain"(
   "block_id" INTEGER NOT NULL PRIMARY KEY,
   "parent" INTEGER,
   "height" INTEGER,
+  "tip" INTEGER,
   FOREIGN KEY("block_id") REFERENCES "blocks"("block_id")
 );
-CREATE INDEX IF NOT EXISTS "chain_block_id_idx"
-ON "chain"("block_id");
-CREATE INDEX IF NOT EXISTS "chain_parent_idx"
-ON "chain"("parent");
-CREATE INDEX IF NOT EXISTS "chain_height_idx"
-ON "chain"("height");
+CREATE INDEX IF NOT EXISTS "chain_block_id_idx" ON "chain"("block_id");
+CREATE INDEX IF NOT EXISTS "chain_parent_idx" ON "chain"("parent");
+CREATE INDEX IF NOT EXISTS "chain_height_idx" ON "chain"("height");
+CREATE INDEX IF NOT EXISTS "chain_tip_idx" ON "chain"("tip");
 
 INSERT OR IGNORE INTO "blocks"("hash")
 VALUES (x'0000000000000000000000000000000000000000000000000000000000000000');

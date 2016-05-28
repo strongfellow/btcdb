@@ -2,13 +2,13 @@ package com.strongfellow.btcdb.components;
 
 import java.io.IOException;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-@Component
 public class WriteQueries {
-    @Autowired
-    private QueryCache queryCache;
+
+    private final QueryCache queryCache;
+
+    public WriteQueries(QueryCache qc) {
+        this.queryCache = qc;
+    }
 
     public String associateTransactionsWithBlocks() throws IOException {
         return queryCache.loadQuery("block/associate_transactions_with_block");
@@ -67,6 +67,14 @@ public class WriteQueries {
 
     public String insertPublicKeyHashTxouts() throws IOException {
         return queryCache.loadQuery("transaction/ensure_pkhashes");
+    }
+
+    public String updateDepths() throws IOException {
+        return queryCache.loadQuery("block/update_depths");
+    }
+
+    public String extendChain() throws IOException {
+        return queryCache.loadQuery("block/extend_chain");
     }
 
 }

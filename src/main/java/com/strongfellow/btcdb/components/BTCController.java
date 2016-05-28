@@ -39,6 +39,11 @@ public class BTCController {
         listener.processBlock(block);
     }
 
+    @RequestMapping(value="/headers", method=RequestMethod.POST)
+    public void postHeader(@RequestBody Block block) throws Exception {
+        listener.processHeader(block);
+    }
+
     @RequestMapping(value="/blocks/{block}/summary")
     @ResponseBody
     public BlockSummary getBlockSummary(@PathVariable("block") String block) throws IOException, DecoderException {

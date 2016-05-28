@@ -2,14 +2,13 @@ package com.strongfellow.btcdb.components;
 
 import java.io.IOException;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-@Component
 public class ReadQueries {
 
-    @Autowired
-    private QueryCache queryCache;
+    private final QueryCache queryCache;
+
+    public ReadQueries(QueryCache qc) {
+        this.queryCache = qc;
+    }
 
     public String getBlockDetails() throws IOException {
         return queryCache.loadQuery("reads/get_block_details");
@@ -67,6 +66,10 @@ public class ReadQueries {
 
     public String getBlocksForTransaction() throws IOException {
         return queryCache.loadQuery("reads/transaction/get_blocks");
+    }
+
+    public String chooseTip() throws IOException {
+        return queryCache.loadQuery("reads/choose_tip");
     }
 
 }

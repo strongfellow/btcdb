@@ -13,7 +13,6 @@ import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.ryantenney.metrics.spring.config.annotation.EnableMetrics;
@@ -32,11 +31,7 @@ public class Configuration {
 
     @Bean
     public DataSource dataSource() {
-        SingleConnectionDataSource dataSource = new SingleConnectionDataSource();
-        dataSource.setDriverClassName("org.sqlite.JDBC");
-        dataSource.setUrl("jdbc:sqlite:test.db");
-        dataSource.setAutoCommit(false);
-        return dataSource;
+        return DBUtils.getSqliteDataSource("test.db");
     }
 
     @Bean

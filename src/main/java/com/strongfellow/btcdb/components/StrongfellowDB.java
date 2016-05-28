@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,17 +34,23 @@ import com.strongfellow.btcdb.script.UnknownOpCodeException;
 public class StrongfellowDB {
 
     private MetricRegistry metricRegistry;
+    private NamedParameterJdbcTemplate template;
+
+    private ReadQueries readQueries;
+    private WriteQueries writeQueries;
 
     private static final Logger logger = LoggerFactory.getLogger(StrongfellowDB.class);
 
     @Autowired
-    NamedParameterJdbcTemplate template;
+    public void setDataSource(DataSource dataSource) {
+        this.template = new NamedParameterJdbcTemplate(dataSource);
+    }
 
     @Autowired
-    ReadQueries readQueries;
-
-    @Autowired
-    WriteQueries writeQueries;
+    public void setQueryCache(QueryCache queryCache) {
+        this.readQueries = new ReadQueries(queryCache);
+        this.writeQueries = new WriteQueries(queryCache);
+    }
 
     @Autowired
     public void setMetricsRegistry(MetricRegistry r) {
@@ -70,18 +78,18 @@ public class StrongfellowDB {
     }
 
     @Timed(name="insert.block")
-    public void insertBlock(Block block) throws DataAccessException, IOException {
+    public void insertBlock(byte[] hash, byte[] previous) throws DataAccessException, IOException {
         Map<String, Object> map = new HashMap<>();
-        map.put("previous", block.getHeader().getPreviousBlock());
-        map.put("hash", block.getMetadata().getHash());
+        map.put("previous", previous);
+        map.put("hash", hash);
         template.update(writeQueries.ensureBlocks(), map);
     }
 
     @Timed(name="insert.block.chain")
-    public void insertBlockchain(Block block) throws DataAccessException, IOException {
+    public void insertBlockchain(byte[] hash, byte[] parent) throws DataAccessException, IOException {
         Map<String, Object> map = new HashMap<>();
-        map.put("previous", block.getHeader().getPreviousBlock());
-        map.put("hash", block.getMetadata().getHash());
+        map.put("parent", parent);
+        map.put("hash", hash);
         template.update(writeQueries.insertBlockchain(), map);
     }
 
@@ -341,4 +349,28 @@ public class StrongfellowDB {
         }
     }
 
+    public void updateTips(byte[] hash) throws DataAccessException, IOException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("hash", hash);
+
+        Integer tip = template.queryForObject(readQueries.chooseTip(), params, new RowMapper<Integer>() {
+            @Override
+            public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+                int result = rs.getInt("tip");
+                if (rs.wasNull()) {
+                    throw new SQLException("expected to find tip");
+                } else {
+                    return result;
+                }
+            }
+        });
+        params.clear();
+        params.put("tip", tip);
+        while (true) {
+            int n = template.update(writeQueries.extendChain(), params);
+            if (n == 0) {
+                break;
+            }
+        }
+    }
 }
