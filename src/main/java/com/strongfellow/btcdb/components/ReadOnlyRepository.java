@@ -122,6 +122,24 @@ public class ReadOnlyRepository {
             }
         });
 
+        template.query(readQueries.getTip(), map, new RowCallbackHandler() {
+
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+
+                byte[] tip = rs.getBytes("tip");
+                if (rs.wasNull()) {
+                    throw new SQLException("we expect to have a tip");
+                }
+                int depth = rs.getInt("depth");
+                if (rs.wasNull()) {
+                    throw new SQLException("we expect to have depth");
+                }
+                blockSummary.setDepth(depth);
+                blockSummary.setTip(Hashes.toBigEndian(tip));
+            }
+        });
+
         return blockSummary;
     }
 

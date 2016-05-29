@@ -1,7 +1,7 @@
 
 WITH "t1"("tip", "height") AS
 
-(SELECT "children"."block_id" AS "tip", "children"."height" AS "height"
+(SELECT "tips"."block_id" AS "tip", "tips"."height" AS "height"
 FROM "chain" AS "parent"
 JOIN "blocks" USING("block_id")
 JOIN "chain" AS "children" ON "children"."parent" = "parent"."block_id"
@@ -16,7 +16,10 @@ FROM "chain" JOIN "blocks" USING("block_id")
 WHERE "blocks"."hash" = :hash
 )
 
+SELECT tip FROM
+(
 SELECT tip, height FROM t1
 UNION
 SELECT tip, height from t2
 ORDER BY height DESC, tip LIMIT 1
+)

@@ -24,6 +24,8 @@ public class BlockSummary {
     private Long sumOfTxins;
     private Long sumOfTxouts;
     private Long version;
+    private Integer depth;
+    private String tip;
 
     public void addChild(String child) {
         this.children.add(child);
@@ -139,5 +141,21 @@ public class BlockSummary {
 
     public void setVersion(Long version) {
         this.version = version;
+    }
+
+    public Integer getDepth() {
+        return depth;
+    }
+
+    public void setDepth(Integer depth) {
+        this.depth = depth;
+    }
+
+    public String getTip() {
+        return tip;
+    }
+
+    public void setTip(String tip) {
+        this.tip = tip;
     }
 }

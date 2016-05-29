@@ -72,4 +72,8 @@ public class ReadQueries {
         return queryCache.loadQuery("reads/choose_tip");
     }
 
+    public String getTip() throws IOException {
+        return queryCache.loadQuery("reads/get_tip");
+    }
+
 }

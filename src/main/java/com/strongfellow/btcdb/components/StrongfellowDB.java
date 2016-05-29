@@ -370,6 +370,8 @@ public class StrongfellowDB {
             int n = template.update(writeQueries.extendChain(), params);
             if (n == 0) {
                 break;
+            } else {
+
             }
         }
     }

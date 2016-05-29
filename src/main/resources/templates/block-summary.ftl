@@ -35,6 +35,14 @@
         <td>Height</td><td>${(model.blockSummary.height)!"unknown"}</td>
       </tr>
       <tr>
+        <td class="key">Tip</td>
+        <td class="value"><@blockLink hash=model.blockSummary.tip /></td>
+      </tr>
+      <tr>
+        <td class="key">Depth</td>
+        <td class="value">${model.blockSummary.depth}</td>
+      </tr>
+      <tr>
         <td>Timestamp</td><td>${model.blockSummary.timestamp}</td>
       </tr>
       <tr>
