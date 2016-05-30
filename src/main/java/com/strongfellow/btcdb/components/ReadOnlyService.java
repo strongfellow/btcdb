@@ -19,7 +19,11 @@ public class ReadOnlyService {
 
     @Transactional(readOnly=true)
     public BlockSummary getBlockSummary(String block) throws IOException, DecoderException {
-        return this.db.getBlockSummary(block);
+        BlockSummary bs = new BlockSummary();
+        bs.setHash(block);
+        db.setBlockSummaryDetails(bs);
+        db.addTransactions(bs);
+        return bs;
     }
 
     @Transactional(readOnly=true)

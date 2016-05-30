@@ -26,7 +26,6 @@ public class MVCController {
             @PathVariable("blockHash") String blockHash,
             @ModelAttribute("model") ModelMap model) throws IOException, DecoderException {
         BlockSummary bs = readService.getBlockSummary(blockHash);
-        model.addAttribute("blockHash", blockHash);
         model.addAttribute("blockSummary", bs);
         return "block-summary";
     }

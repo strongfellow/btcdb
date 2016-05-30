@@ -1,3 +1,19 @@
+
+
+<#macro addressLink address>
+<span class="address">
+  <a href="/api/address/${address}/summary.html">${address}</a>
+</span>
+</#macro>
+
+<#macro transactionLink transactionSummary>
+<span class="hash">
+  <a href="/api/transaction/${transactionSummary.hash}/summary.html">
+  ${transactionSummary.hash}
+  </a>
+</span>
+</#macro>
+
 <#macro blockLink hash>
 <span class="hash">
 <a href="/api/block/${hash}/summary.html">${hash}</a>
@@ -64,7 +80,7 @@
     <tbody>
       <tr>
         <td class="key">Block Hash</td>
-        <td class="value"><@blockLink hash=model.blockHash /></td>
+        <td class="value"><@blockLink hash=model.blockSummary.hash /></td>
       </tr>
       <tr>
         <td class="key">Merkle Root</td>
@@ -99,6 +115,13 @@
 <div class="content-container">
 </section>
   <h2>Transactions</h2>
+  <ol>
+  <#list model.blockSummary.transactions as transaction>
+    <li>
+      <@transactionLink transactionSummary = transaction />
+    </li>
+  </#list>
+  </ol>
 </section>
 </div>
 </#macro>
@@ -109,10 +132,15 @@
   <link rel="stylesheet" href="/css/pure-release-0.6.0/pure-min.css">
   <link rel="stylesheet" href="/css/strongfellow.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Strongfellow - Block ${model.blockHash}</title>
+  <title>Strongfellow - Block ${model.blockSummary.hash}</title>
 </head>
 <body>
 <div class="pure-g">
+  <div class="pure-u-1-1">
+    <div class="content-container">
+      <h3>Block <@blockLink hash=model.blockSummary.hash /></h3>
+    </div>
+  </div>
   <div class="pure-u-1-3">
     <@summaryTable model=model />
   </div>

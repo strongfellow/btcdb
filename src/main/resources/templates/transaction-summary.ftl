@@ -4,25 +4,15 @@
 </span>
 </#macro>
 
-<#macro transactionLink model>
+<#macro transactionLink transaction>
 <span class="hash">
-  <a href="/api/transaction/${model.transactionSummary.hash}/summary.html">
-  ${model.transactionSummary.hash}
+  <a href="/api/transaction/${transaction.hash}/summary.html">
+  ${transaction.hash}
   </a>
 </span>
 </#macro>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <link rel="stylesheet" href="/css/pure-release-0.6.0/pure-min.css">
-  <link rel="stylesheet" href="/css/strongfellow.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Strongfellow - Transaction ${model.transactionSummary.hash}</title>
-</head>
-<body>
-<header>Transaction <@transactionLink model=model /></header>
-
+<#macro transaction transaction>
 <section id="transaction-details">
 <div class="pure-g">
   <div class="pure-u-5-12">
@@ -30,13 +20,13 @@
       <table>
         <thead>
           <tr><th colspan="2">Inputs</th></tr>
-          <#if model.transactionSummary.inputs?has_content >
+          <#if transaction.inputs?has_content >
             <tr><th>Address</th><th>Value</th></tr>
           </#if>
         </thead>
         <tbody>
-        <#if model.transactionSummary.inputs?has_content>
-        <#list model.transactionSummary.inputs as input>
+        <#if transaction.inputs?has_content>
+        <#list transaction.inputs as input>
           <tr>
             <td><@addressLink address=input.address /></td>
             <td>
@@ -71,7 +61,7 @@
       </thead>
     
     <tbody>
-    <#list model.transactionSummary.outputs as output>
+    <#list transaction.outputs as output>
       <tr>
         <td><@addressLink address=output.address /></td>
         <td><span class="satoshis">${output.value}</span></td>
@@ -106,13 +96,13 @@
           <tr><th>Summary</th></tr>
         </thead>
         <tbody>
-          <tr><td class="key">Size (bytes)</td><td class="value">${model.transactionSummary.size}</td></tr>
-          <tr><td class="key">Output Value</td><td class="value">${model.transactionSummary.outputValue}</td></tr>
+          <tr><td class="key">Size (bytes)</td><td class="value">${transaction.size}</td></tr>
+          <tr><td class="key">Output Value</td><td class="value">${transaction.outputValue}</td></tr>
           <tr>
             <td class="key">Block</td>
             <td class="value">
               <ul>
-              <#list model.transactionSummary.blockPointers as blockPointer>
+              <#list transaction.blockPointers as blockPointer>
                 <li>
                   <a href="/api/block/${blockPointer.hash}/summary.html">${blockPointer.hash}</a>&nbsp;(${blockPointer.height})
                 </li>
@@ -122,10 +112,29 @@
           </tr>
         </tbody>
       </table>
-    </div><!-- end summary -->
-  </div><!-- end pure-u-1-1 -->
-</div><!-- end pure-g -->
-</section>  
+    </div>
+  </div>
+</div>
+</#macro>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="/css/pure-release-0.6.0/pure-min.css">
+  <link rel="stylesheet" href="/css/strongfellow.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Strongfellow - Transaction ${model.transactionSummary.hash}</title>
+</head>
+<body>
+<div class="pure-g">
+  <div class="pure-u">
+    <div class="content-container">
+      <header>
+        <h2>Transaction <@transactionLink transaction=model.transactionSummary /></h2>
+      </header>
+    </div>
+  </div>
+</div>
+<@transaction transaction=model.transactionSummary />
 </body>
 </html>

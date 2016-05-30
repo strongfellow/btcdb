@@ -9,6 +9,8 @@ import org.joda.time.format.ISODateTimeFormat;
 
 public class BlockSummary {
 
+    private String hash;
+    private List<TransactionSummary> transactions;
     private String timestamp;
     private Long bits;
     private final List<String> children = new ArrayList<>();
@@ -157,5 +159,21 @@ public class BlockSummary {
 
     public void setTip(String tip) {
         this.tip = tip;
+    }
+
+    public String getHash() {
+        return hash;
+    }
+
+    public void setHash(String hash) {
+        this.hash = hash;
+    }
+
+    public void setTransactions(List<TransactionSummary> transactions) {
+        this.transactions = transactions;
+    }
+
+    public List<TransactionSummary> getTransactions() {
+        return this.transactions;
     }
 }

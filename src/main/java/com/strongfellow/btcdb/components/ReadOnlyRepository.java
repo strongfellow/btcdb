@@ -40,15 +40,13 @@ public class ReadOnlyRepository {
 
     private ReadQueries readQueries;
 
-    public BlockSummary getBlockSummary(String block) throws IOException, DecoderException {
+    public void setBlockSummaryDetails(BlockSummary result) throws IOException, DecoderException {
         Map<String, Object> map = new HashMap<>();
-        map.put("hash", Hashes.fromBigEndian(block));
-        String sql = readQueries.getBlockDetails();
-        final BlockSummary blockSummary = template.queryForObject(sql, map, new RowMapper<BlockSummary>() {
+        map.put("hash", Hashes.fromBigEndian(result.getHash()));
+        template.query(readQueries.getBlockDetails(), map, new RowCallbackHandler() {
 
             @Override
-            public BlockSummary mapRow(ResultSet rs, int arg1) throws SQLException {
-                BlockSummary result = new BlockSummary();
+            public void processRow(ResultSet rs) throws SQLException {
                 result.setSize(rs.getInt("size"));
                 result.setBits(rs.getLong("bits"));
                 result.setTimestamp(rs.getLong("timestamp"));
@@ -56,15 +54,12 @@ public class ReadOnlyRepository {
                 result.setNonce(rs.getLong("nonce"));
                 byte[] merkle = rs.getBytes("merkle");
                 result.setMerkle(rs.wasNull() ? null : Hashes.toBigEndian(merkle));
-                return result;
             }
-
         });
-
         template.query(readQueries.getNumTx(), map, new RowCallbackHandler() {
             @Override
             public void processRow(ResultSet r) throws SQLException {
-                blockSummary.setNumTx(r.getInt("count"));
+                result.setNumTx(r.getInt("count"));
             }
         });
 
@@ -73,10 +68,10 @@ public class ReadOnlyRepository {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
                 byte[] parent = rs.getBytes("parent");
-                blockSummary.setParent(rs.wasNull() ? null : Hashes.toBigEndian(parent));
+                result.setParent(rs.wasNull() ? null : Hashes.toBigEndian(parent));
                 int h = rs.getInt("height");
                 if (!rs.wasNull()) {
-                    blockSummary.setHeight(h);
+                    result.setHeight(h);
                 }
             }
         });
@@ -85,7 +80,7 @@ public class ReadOnlyRepository {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
                 byte[] child = rs.getBytes("child");
-                blockSummary.addChild(rs.wasNull() ? null : Hashes.toBigEndian(child));
+                result.addChild(rs.wasNull() ? null : Hashes.toBigEndian(child));
             }
         });
 
@@ -93,7 +88,7 @@ public class ReadOnlyRepository {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
                 long v = rs.getLong("sum");
-                blockSummary.setSumOfTxOuts(rs.wasNull() ? null : v);
+                result.setSumOfTxOuts(rs.wasNull() ? null : v);
             }
         });
 
@@ -101,7 +96,7 @@ public class ReadOnlyRepository {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
                 long v = rs.getLong("sumOfTxins");
-                blockSummary.setSumOfTxins(rs.wasNull() ? 0 : v);
+                result.setSumOfTxins(rs.wasNull() ? 0 : v);
             }
         });
 
@@ -109,7 +104,7 @@ public class ReadOnlyRepository {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
                 long v = rs.getLong("coinbase");
-                blockSummary.setCoinbaseValue(rs.wasNull() ? null : v);
+                result.setCoinbaseValue(rs.wasNull() ? null : v);
             }
         });
 
@@ -118,7 +113,7 @@ public class ReadOnlyRepository {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
                 byte[] script = rs.getBytes("coinbase");
-                blockSummary.setCoinbaseScript(rs.wasNull() ? null : script);
+                result.setCoinbaseScript(rs.wasNull() ? null : script);
             }
         });
 
@@ -135,12 +130,10 @@ public class ReadOnlyRepository {
                 if (rs.wasNull()) {
                     throw new SQLException("we expect to have depth");
                 }
-                blockSummary.setDepth(depth);
-                blockSummary.setTip(Hashes.toBigEndian(tip));
+                result.setDepth(depth);
+                result.setTip(Hashes.toBigEndian(tip));
             }
         });
-
-        return blockSummary;
     }
 
     @Timed
@@ -310,6 +303,26 @@ public class ReadOnlyRepository {
             }
         });
         transactionSummary.setBlockPointers(blocks);
+    }
+
+    public void addTransactions(BlockSummary bs) throws DecoderException, DataAccessException, IOException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("hash", Hashes.fromBigEndian(bs.getHash()));
+        List<TransactionSummary> transactions = template.query(
+                readQueries.getTransactionsForBlock(), params, new RowMapper<TransactionSummary>() {
+
+                    @Override
+                    public TransactionSummary mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        byte[] tx = rs.getBytes("tx");
+                        if (rs.wasNull()) {
+                            throw new SQLException("we expect tx");
+                        }
+                        TransactionSummary ts = new TransactionSummary();
+                        ts.setHash(Hashes.toBigEndian(tx));
+                        return ts;
+                    }
+                });
+        bs.setTransactions(transactions);
     }
 
 }

@@ -76,4 +76,8 @@ public class ReadQueries {
         return queryCache.loadQuery("reads/get_tip");
     }
 
+    public String getTransactionsForBlock() throws IOException {
+        return queryCache.loadQuery("reads/get_transactions_for_block");
+    }
+
 }
