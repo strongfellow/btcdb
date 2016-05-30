@@ -1,8 +1,14 @@
-- show whether we're spent or not
-- show a nicer page for coinbase
+
+- show a list of transactions in a block
+- show a list of blocks in a transaction
+- show a number of confirmations for each block
+- show a number of confirmations for each transaction
+x show whether we're spent or not
+x show a nicer page for coinbase
 - say what blocks a transaction is included in
 - create an address page
 - add a full block viewer
 - load the whole chain
-- what goes wrong when we load 87a157f3fd88ac7907c05fc55e271dc4acdc5605d187d646604ca8c0e9382e03
+x what goes wrong when we load 87a157f3fd88ac7907c05fc55e271dc4acdc5605d187d646604ca8c0e9382e03
+  from block 00000000000081a7e51283a1fc26bfe8ff7c5b7bd031dc5613395590d6220a3d?
 

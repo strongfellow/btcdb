@@ -13,7 +13,8 @@ def _read_exactly(n):
 
 def main():
   s = requests.Session()
-  logging.basicConfig(level=logging.INFO)
+  logging.basicConfig(level=logging.INFO,
+		      format='%(asctime)s %(message)s')
 #  logging.getLogger("requests").setLevel(logging.WARNING)
 
   i = 0
@@ -22,7 +23,7 @@ def main():
     magic = _read_exactly(4)
     size = sum([((x & 0xff) << (i * 8)) for i, x in enumerate(_read_exactly(4))])
     block = _read_exactly(size)
-    response = s.post('http://localhost:8080/blocks', data=block,
+    response = s.post('http://localhost:8080/internal/blocks', data=block,
                              headers={ 'Content-Type': 'strongfellow/block'})
     status = response.status_code
     statuses[status] = 1 + statuses.get(status, 0)

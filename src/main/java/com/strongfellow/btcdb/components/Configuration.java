@@ -1,10 +1,19 @@
 package com.strongfellow.btcdb.components;
 
 import java.io.IOException;
+import java.net.InetAddress;
 
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
+import org.springframework.boot.context.embedded.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -82,4 +91,41 @@ public class Configuration {
 
         return new HttpMessageConverters(blockConverter, transactionConverter);
     }
+
+    @Bean
+    public FilterRegistrationBean someFilterRegistration() {
+
+        FilterRegistrationBean registration = new FilterRegistrationBean();
+        registration.setFilter(new Filter() {
+
+            @Override
+            public void destroy() {
+            }
+
+            @Override
+            public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
+                    throws IOException, ServletException {
+                String a = request.getRemoteAddr();
+                String h = request.getRemoteHost();
+                InetAddress address = InetAddress.getByName(h);
+                if (address.isLoopbackAddress()) {
+                    filterChain.doFilter(request, response);
+                } else {
+                    ((HttpServletResponse)response).sendError(HttpServletResponse.SC_FORBIDDEN);
+                }
+            }
+
+            @Override
+            public void init(FilterConfig arg0) throws ServletException {
+                // TODO Auto-generated method stub
+
+            }
+
+        });
+        registration.addUrlPatterns("/internal/*");
+        registration.setName("someFilter");
+        registration.setOrder(1);
+        return registration;
+    }
+
 }

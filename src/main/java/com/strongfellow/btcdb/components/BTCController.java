@@ -16,6 +16,7 @@ import com.strongfellow.btcdb.protocol.Transaction;
 import com.strongfellow.btcdb.response.BlockSummary;
 
 @RestController
+@RequestMapping("/internal")
 public class BTCController {
 
     @Autowired
