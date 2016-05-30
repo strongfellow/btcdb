@@ -138,7 +138,7 @@
 <div class="pure-g">
   <div class="pure-u-1-1">
     <div class="content-container">
-      <h3>Block <@blockLink hash=model.blockSummary.hash /></h3>
+      <h3><@blockLink hash=model.blockSummary.hash /></h3>
     </div>
   </div>
   <div class="pure-u-1-3">
