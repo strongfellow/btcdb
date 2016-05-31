@@ -157,6 +157,45 @@ public class ReadOnlyRepository {
         });
     }
 
+    public void addOutputs(BlockSummary bs) throws DecoderException, DataAccessException, IOException {
+        String hash = bs.getHash();
+        Map<String, Object> params = new HashMap<>();
+        params.put("hash", Hashes.fromBigEndian(hash));
+
+        template.query(readQueries.getBlockTxouts(), params, new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                int i = rs.getInt("transaction_index");
+                if (rs.wasNull()) {
+                    throw new SQLException("we expect an index");
+                }
+                TransactionSummary transactionSummary = bs.getTransactions().get(i);
+                int j = rs.getInt("txout_index");
+                if (rs.wasNull()) {
+                    throw new SQLException("we expect a txout index");
+                }
+                if (j == transactionSummary.getOutputs().size()) {
+                    transactionSummary.getOutputs().add(new Txout());
+                }
+                Txout txout = transactionSummary.getOutputs().get(j);
+                byte[] tx = rs.getBytes("tx");
+                if (!rs.wasNull()) {
+                    Spend spend = new Spend();
+                    spend.setTx(Hashes.toBigEndian(tx));
+                    spend.setIndex(rs.getInt("index"));
+                    txout.addSpend(spend);;
+                }
+                byte[] address = rs.getBytes("address");
+                try {
+                    txout.setAddress(rs.wasNull() ? null : address);
+                } catch (DigestException e) {
+                    throw new SQLException(e);
+                }
+                txout.setValue(rs.getLong("value"));
+            }
+        });
+    }
+
     public void addOutputs(TransactionSummary transactionSummary) throws DecoderException, DataAccessException, IOException {
         String hash = transactionSummary.getHash();
         Map<String, Object> params = new HashMap<>();
@@ -323,6 +362,31 @@ public class ReadOnlyRepository {
                     }
                 });
         bs.setTransactions(transactions);
+    }
+
+
+    public void addInputs(BlockSummary bs) throws DecoderException, DataAccessException, IOException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("hash", Hashes.fromBigEndian(bs.getHash()));
+        template.query(readQueries.getBlockTxins(), params, new RowCallbackHandler() {
+
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                TransactionSummary ts = bs.getTransactions().get(
+                        rs.getInt("transaction_index"));
+                Txin txin = new Txin();
+                ts.getInputs().add(txin);
+                byte[] address = rs.getBytes("address");
+                try {
+                    txin.setAddress(rs.wasNull() ? null : address);
+                } catch (DigestException e) {
+                    throw new SQLException(e);
+                }
+                txin.setTxout(Hashes.toBigEndian(rs.getBytes("tx")));
+                txin.setIndex(rs.getInt("index"));
+                txin.setValue(rs.getLong("value"));
+            }
+        });
     }
 
 }

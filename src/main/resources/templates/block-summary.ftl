@@ -14,6 +14,84 @@
 </span>
 </#macro>
 
+<#macro transactionDetails transaction>
+  <@transactionLink transactionSummary = transaction />
+<section id="transaction-details">
+<div class="pure-g">
+  <div class="pure-u-5-12">
+    <div class="txins content-container">
+      <table>
+        <thead>
+          <tr><th colspan="2">Inputs</th></tr>
+          <#if transaction.inputs?has_content >
+            <tr><th>Address</th><th>Value</th></tr>
+          </#if>
+        </thead>
+        <tbody>
+        <#if transaction.inputs?has_content>
+        <#list transaction.inputs as input>
+          <tr>
+            <td><@addressLink address=input.address /></td>
+            <td>
+              <span class="satoshis">
+                <a href="/api/transaction/${input.txout}/summary.html#output${input.index}">
+                ${input.value}
+                </a>
+              </span>
+            </td>
+          </tr>
+        </#list>
+        <#else>
+          <tr><td>No Inputs (coinbase)</td></tr>
+        </#if> 
+        </tbody>
+      </table>  
+    </div><!-- end txins -->
+  </div><!-- end pure-u-5-12 -->
+  <div class="pure-u-1-6">
+    <div class="arrow content-container"><span>&#8594;<span></div>
+  </div>
+  <div class="pure-u-5-12">
+  <div class="txouts content-container">
+    <table>
+      <thead>
+        <tr><th colspan="3">Outputs</th></tr>
+        <tr>
+          <th>Address</th>
+          <th>Value</th>
+          <th>Spends</th>
+        </tr>        
+      </thead>
+    
+    <tbody>
+    <#list transaction.outputs as output>
+      <tr>
+        <td><@addressLink address=output.address /></td>
+        <td><span class="satoshis">${output.value}</span></td>
+        <td>
+          <#if output.spends?has_content>
+          <ul>
+          <#list output.spends as spend>
+            <li>
+              (<a href="/api/transaction/${spend.tx}/summary.html#input${spend.index}">Spent</a>)
+            </li>
+          </#list>
+          </ul>
+          <#else>
+          Unspent
+          </#if>
+        </td>
+      </tr>
+    </#list>
+    </tbody>
+    </table>
+  </div><!-- end txouts -->
+  </div><!-- end pure-u-5-12 -->
+</div><!-- end pure-g -->
+</section>
+
+</#macro>
+
 <#macro blockLink hash>
 <span class="hash">
 <a href="/api/block/${hash}/summary.html">${hash}</a>
@@ -118,7 +196,7 @@
   <ol>
   <#list model.blockSummary.transactions as transaction>
     <li>
-      <@transactionLink transactionSummary = transaction />
+      <@transactionDetails transaction=transaction />
     </li>
   </#list>
   </ol>

@@ -1,5 +1,6 @@
 package com.strongfellow.btcdb.response;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TransactionSummary {
@@ -10,8 +11,8 @@ public class TransactionSummary {
     private Long size;
     private Long lockTime;
     private Long version;
-    private List<Txin> inputs;
-    private List<Txout> outputs;
+    private List<Txin> inputs = new ArrayList<>();
+    private List<Txout> outputs = new ArrayList<>();
     private List<BlockPointer> blockPointers;
 
     public List<Txin> getInputs() {

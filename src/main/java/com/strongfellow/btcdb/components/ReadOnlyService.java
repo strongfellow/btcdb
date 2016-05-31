@@ -23,6 +23,8 @@ public class ReadOnlyService {
         bs.setHash(block);
         db.setBlockSummaryDetails(bs);
         db.addTransactions(bs);
+        db.addOutputs(bs);
+        db.addInputs(bs);
         return bs;
     }
 
