@@ -19,6 +19,17 @@ public class TransactionSummary {
         return inputs;
     }
 
+    public Long getFees() {
+        long result = 0;
+        for (Txin t : this.inputs) {
+            result += t.getValue();
+        }
+        for (Txout t : this.outputs) {
+            result -= t.getValue();
+        }
+        return result;
+    }
+
     public List<Txout> getOutputs() {
         return outputs;
     }

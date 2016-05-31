@@ -23,7 +23,7 @@ def main():
     magic = _read_exactly(4)
     size = sum([((x & 0xff) << (i * 8)) for i, x in enumerate(_read_exactly(4))])
     block = _read_exactly(size)
-    if i < 100000:
+    if i < 142000:
       statuses[0] = 1 + statuses.get(0, 0)
     else:
       response = s.post('http://localhost:8080/internal/blocks', data=block,

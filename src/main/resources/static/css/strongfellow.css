@@ -4,6 +4,10 @@ table {
   border-collapse: separate;
 }
 
+th {
+  text-align: center;
+}
+
 .content-container {
   margin: 40px;
 }

@@ -14,7 +14,7 @@
 </span>
 </#macro>
 
-<#macro transactionDetails transaction>
+<#macro transactionDetails transaction index block>
   <@transactionLink transactionSummary = transaction />
 <section id="transaction-details">
 <div class="pure-g">
@@ -25,6 +25,8 @@
           <tr><th colspan="2">Inputs</th></tr>
           <#if transaction.inputs?has_content >
             <tr><th>Address</th><th>Value</th></tr>
+          <#else>
+            <tr><th>Source</th><th>Value</th></tr>
           </#if>
         </thead>
         <tbody>
@@ -42,7 +44,8 @@
           </tr>
         </#list>
         <#else>
-          <tr><td>No Inputs (coinbase)</td></tr>
+          <tr><td>Block Reward</td><td><span class="satoshis">${block.reward}</span></td></tr>
+          <tr><td>Fees</td><td><span class="satoshis">${block.feesAvailable}</span></td></tr>
         </#if> 
         </tbody>
       </table>  
@@ -83,7 +86,23 @@
         </td>
       </tr>
     </#list>
+      <#if index == 0>
+      <tr>
+        <td>Unclaimed Fees</td>
+        <td><span class="satoshis">${block.feesAvailable - block.feesClaimed}</span></td>
+      </tr>
+      </#if>
     </tbody>
+    <#if transaction.fees gt 0>
+    <thead>
+      <tr><th colspan="3">Fees</th></tr>
+    </thead>
+    <tbody>
+      <td></td>
+      <td><span class="satoshis">${transaction.fees}</span></td>
+      <td></td>
+    </tbody>
+    </#if>
     </table>
   </div><!-- end txouts -->
   </div><!-- end pure-u-5-12 -->
@@ -196,7 +215,9 @@
   <ol>
   <#list model.blockSummary.transactions as transaction>
     <li>
-      <@transactionDetails transaction=transaction />
+      <@transactionDetails transaction=transaction
+                           index=transaction?index
+                           block=model.blockSummary />
     </li>
   </#list>
   </ol>
