@@ -1,8 +1,6 @@
 
 PRAGMA foreign_keys = ON;
 
-BEGIN TRANSACTION;
-
 CREATE TABLE IF NOT EXISTS "blocks"(
   "block_id" INTEGER PRIMARY KEY,
   "hash" BLOB UNIQUE NOT NULL
@@ -172,4 +170,3 @@ CREATE TABLE IF NOT EXISTS "coinbase"(
 CREATE INDEX IF NOT EXISTS "coinbase_txin_idx"
 ON "coinbase"("txin_id");
 
-COMMIT;

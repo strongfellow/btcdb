@@ -12,6 +12,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
 import org.springframework.boot.context.embedded.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -39,8 +40,8 @@ public class Configuration {
     private static final MediaType TRANSACTION_MEDIATYPE = new MediaType("strongfellow", "transaction");
 
     @Bean
-    public DataSource dataSource() {
-        return DBUtils.getSqliteDataSource("test.db");
+    public DataSource dataSource(@Value("${db.path}") String path) {
+        return DBUtils.getSqliteDataSource(path);
     }
 
     @Bean
