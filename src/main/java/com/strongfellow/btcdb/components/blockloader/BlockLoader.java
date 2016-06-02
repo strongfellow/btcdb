@@ -94,7 +94,20 @@ public class BlockLoader {
                     }
                 }
                 Block block = new BlockReader(in).readBlock();
-                listener.processBlock(block);
+
+                Thread t1 = new Thread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        try {
+                            listener.processBlock(block);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+                t1.start();
+                t1.join();
                 logger.info(
                         "loaded {} blocks from file {}", count + 1, file.getName());
 
