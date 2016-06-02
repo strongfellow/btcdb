@@ -18,7 +18,17 @@ public class BlockLoaderInitializer {
     @PostConstruct
     public void postConstruct() throws Exception {
         logger.info("begin postconstruct");
-        blockLoader.slurpBlocksInBackground();
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    blockLoader.slurpBlocks();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }).start();
         logger.info("end postconstruct");
     }
 

@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.strongfellow.btcdb.components.BTCListener;
@@ -36,8 +35,7 @@ public class BlockLoader {
         this.blocksDirectory = s;
     }
 
-    @Async
-    public void slurpBlocksInBackground() throws Exception {
+    public void slurpBlocks() throws Exception {
         logger.info("begin slurping blocks");
         int backoffMinutes = 1;
         while (true) {
