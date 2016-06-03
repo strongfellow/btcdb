@@ -48,7 +48,7 @@ public class DatabaseBTCListener implements BTCListener {
             database.addHash160s(block.getTransactions());
             database.addScripts(block.getTransactions());
         } catch(UnknownOpCodeException | IOException e) {
-            throw new RuntimeException();
+            throw new RuntimeException(e);
         }
         logger.info("finished processing block hash {}", hash);
     }
