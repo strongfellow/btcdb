@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.strongfellow.btcdb.logic.Util;
 import com.strongfellow.btcdb.protocol.Block;
 import com.strongfellow.btcdb.protocol.Transaction;
-import com.strongfellow.btcdb.script.UnknownOpCodeException;
 
 @Component
 public class DatabaseBTCListener implements BTCListener {
@@ -29,27 +28,23 @@ public class DatabaseBTCListener implements BTCListener {
 
     @Override
     @Transactional
-    public void processBlock(Block block) throws DigestException, UnknownOpCodeException {
+    public void processBlock(Block block) throws DigestException, DataAccessException, IOException {
         String hash = Util.bigEndianHash(block.getMetadata().getHash());
         logger.info("begin processing block hash {}", hash);
-        try {
 
-            insertBlockChain(block);
+        insertBlockChain(block);
 
-            database.insertBlockDetails(block);
-            database.ensureTransactionsAndTransactionReferences(block);
-            database.ensureTransactionDetails(block.getTransactions());
-            database.associateTransactionsWithBlock(block);
-            database.ensureTxouts(block);
-            database.ensureTxins(block);
-            database.ensureSpends(block);
-            database.ensureValues(block);
-            database.insertCoinbase(block);
-            database.addHash160s(block.getTransactions());
-            database.addScripts(block.getTransactions());
-        } catch(UnknownOpCodeException | IOException e) {
-            throw new RuntimeException(e);
-        }
+        database.insertBlockDetails(block);
+        database.ensureTransactionsAndTransactionReferences(block);
+        database.ensureTransactionDetails(block.getTransactions());
+        database.associateTransactionsWithBlock(block);
+        database.ensureTxouts(block);
+        database.ensureTxins(block);
+        database.ensureSpends(block);
+        database.ensureValues(block);
+        database.insertCoinbase(block);
+        database.addHash160s(block.getTransactions());
+        database.addScripts(block.getTransactions());
         logger.info("finished processing block hash {}", hash);
     }
 

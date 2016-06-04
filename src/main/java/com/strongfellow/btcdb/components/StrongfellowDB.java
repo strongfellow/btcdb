@@ -282,23 +282,29 @@ public class StrongfellowDB {
     }
 
     @Timed(name="insert.block.addresses")
-    public void addHash160s(List<Transaction> transactions) throws UnknownOpCodeException, DataAccessException, IOException {
+    public void addHash160s(List<Transaction> transactions) throws DataAccessException, IOException {
         String sql = writeQueries.insertPublicKeys();
         Map<String, Object> map = new HashMap<>();
         List<Object[]> rows = new ArrayList<>();
         map.put("addresses", rows);
         for (Transaction transaction : transactions) {
-            for (Output txout : transaction.getOutputs()) {
-                byte[] address = null;
-                byte[] script = txout.getScript();
-                ParsedScript parsedScript = ParsedScript.from(script);
-                if (parsedScript.isPayToPublicKey()) {
-                    address = parsedScript.getPublicKey();
-                } else if (parsedScript.isPayToPubKeyHash()) {
-                    address = parsedScript.getPublicKey();
-                }
-                if (address != null) {
-                    maybeUpdate(sql, map, rows, new Object[] {address});
+            for (int i = 0; i < transaction.getOutputs().size(); i++) {
+                Output txout = transaction.getOutputs().get(i);
+                try {
+                    byte[] address = null;
+                    byte[] script = txout.getScript();
+                    ParsedScript parsedScript = ParsedScript.from(script);
+                    if (parsedScript.isPayToPublicKey()) {
+                        address = parsedScript.getPublicKey();
+                    } else if (parsedScript.isPayToPubKeyHash()) {
+                        address = parsedScript.getPublicKey();
+                    }
+                    if (address != null) {
+                        maybeUpdate(sql, map, rows, new Object[] {address});
+                    }
+                } catch (UnknownOpCodeException e) {
+                    String h = Hashes.toBigEndian(transaction.getMetadata().getHash());
+                    logger.error("we couldnt parse output {} for transaction {}", i, h);
                 }
             }
         }
@@ -308,7 +314,7 @@ public class StrongfellowDB {
     }
 
     @Timed(name="insert.block.scripts")
-    public void addScripts(List<Transaction> transactions) throws UnknownOpCodeException, DigestException, DataAccessException, IOException {
+    public void addScripts(List<Transaction> transactions) throws DigestException, DataAccessException, IOException {
         String pkQuery = writeQueries.insertPublicKeyTxouts();
         List<Object[]> pkRows = new ArrayList<>();
         Map<String, Object> pkMap = new HashMap<>();
@@ -321,24 +327,28 @@ public class StrongfellowDB {
 
         for (Transaction t : transactions) {
             byte[] tx = t.getMetadata().getHash();
-            int i = 0;
-            for (Output txout : t.getOutputs()) {
-                byte[] script = txout.getScript();
-                ParsedScript parsedScript = ParsedScript.from(script);
-                if (parsedScript.isPayToPublicKey()) {
-                    byte[] pk = parsedScript.getPublicKey();
-                    Object[] row = new Object[] { tx, i, pk };
-                    maybeUpdate(pkQuery, pkMap, pkRows, row);
-                    // String base58check = Hashes.publicKeyHashAddressToBase58(pk);
-                    // logger.info("public key: {}", base58check);
-                } else if (parsedScript.isPayToPubKeyHash()) {
-                    byte[] pk = parsedScript.getPublicKey();
-                    Object[] row = new Object[] { tx, i, pk };
-                    maybeUpdate(pkHashQuery, pkHashMap, pkHashRows, row);
-                    // String base58check = Hashes.publicKeyHashAddressToBase58(pk);
-                    // logger.info("public key: {}", base58check);
+            for (int i = 0; i < t.getOutputs().size(); i++) {
+                Output txout = t.getOutputs().get(i);
+                try {
+                    byte[] script = txout.getScript();
+                    ParsedScript parsedScript = ParsedScript.from(script);
+                    if (parsedScript.isPayToPublicKey()) {
+                        byte[] pk = parsedScript.getPublicKey();
+                        Object[] row = new Object[] { tx, i, pk };
+                        maybeUpdate(pkQuery, pkMap, pkRows, row);
+                        // String base58check = Hashes.publicKeyHashAddressToBase58(pk);
+                        // logger.info("public key: {}", base58check);
+                    } else if (parsedScript.isPayToPubKeyHash()) {
+                        byte[] pk = parsedScript.getPublicKey();
+                        Object[] row = new Object[] { tx, i, pk };
+                        maybeUpdate(pkHashQuery, pkHashMap, pkHashRows, row);
+                        // String base58check = Hashes.publicKeyHashAddressToBase58(pk);
+                        // logger.info("public key: {}", base58check);
+                    }
+                } catch(UnknownOpCodeException e) {
+                    String h = Hashes.toBigEndian(t.getMetadata().getHash());
+                    logger.error("we couldnt parse output {} for transaction {}", i, h);
                 }
-                i++;
             }
         }
         if (pkRows.size() > 0) {
