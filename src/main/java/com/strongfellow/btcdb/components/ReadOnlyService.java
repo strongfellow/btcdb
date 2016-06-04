@@ -6,7 +6,6 @@ import org.apache.commons.codec.DecoderException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.strongfellow.btcdb.response.BlockSummary;
 import com.strongfellow.btcdb.response.TransactionSummary;
@@ -17,7 +16,6 @@ public class ReadOnlyService {
     @Autowired
     private ReadOnlyRepository db;
 
-    @Transactional(readOnly=true)
     public BlockSummary getBlockSummary(String block) throws IOException, DecoderException {
         BlockSummary bs = new BlockSummary();
         bs.setHash(block);
@@ -28,7 +26,6 @@ public class ReadOnlyService {
         return bs;
     }
 
-    @Transactional(readOnly=true)
     public TransactionSummary getTransactionSummary(String hash) throws DataAccessException, DecoderException, IOException {
         TransactionSummary ts = new TransactionSummary();
         ts.setHash(hash);
