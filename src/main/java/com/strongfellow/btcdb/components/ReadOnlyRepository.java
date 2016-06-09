@@ -9,8 +9,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.codec.DecoderException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -18,6 +21,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Slf4jReporter;
 import com.codahale.metrics.annotation.Timed;
 import com.strongfellow.btcdb.logic.Hashes;
 import com.strongfellow.btcdb.response.BlockPointer;
@@ -30,6 +35,21 @@ import com.strongfellow.btcdb.response.Txout;
 @Repository
 public class ReadOnlyRepository {
 
+
+    private static final Logger logger = LoggerFactory.getLogger(ReadOnlyRepository.class);
+    private MetricRegistry metricRegistry;
+
+    @Autowired
+    public void setMetricsRegistry(MetricRegistry r) {
+        this.metricRegistry = r;
+        final Slf4jReporter reporter = Slf4jReporter.forRegistry(r)
+                .outputTo(logger)
+                .convertRatesTo(TimeUnit.SECONDS)
+                .convertDurationsTo(TimeUnit.MILLISECONDS)
+                .build();
+        reporter.start(60, TimeUnit.SECONDS);
+    }
+
     @Autowired
     NamedParameterJdbcTemplate template;
 
@@ -40,6 +60,7 @@ public class ReadOnlyRepository {
 
     private ReadQueries readQueries;
 
+    @Timed(name="read.block.summary")
     public void setBlockSummaryDetails(BlockSummary result) throws IOException, DecoderException {
         Map<String, Object> map = new HashMap<>();
         map.put("hash", Hashes.fromBigEndian(result.getHash()));
@@ -56,13 +77,24 @@ public class ReadOnlyRepository {
                 result.setMerkle(rs.wasNull() ? null : Hashes.toBigEndian(merkle));
             }
         });
+    }
+
+    @Timed(name="read.block.numtx")
+    public void setBlockNumTx(BlockSummary result) throws DecoderException, DataAccessException, IOException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("hash", Hashes.fromBigEndian(result.getHash()));
         template.query(readQueries.getNumTx(), map, new RowCallbackHandler() {
             @Override
             public void processRow(ResultSet r) throws SQLException {
                 result.setNumTx(r.getInt("count"));
             }
         });
+    }
 
+    @Timed(name="read.block.parent")
+    public void setBlockParent(BlockSummary result) throws DecoderException, DataAccessException, IOException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("hash", Hashes.fromBigEndian(result.getHash()));
         template.query(readQueries.getParent(), map, new RowCallbackHandler() {
 
             @Override
@@ -75,7 +107,12 @@ public class ReadOnlyRepository {
                 }
             }
         });
+    }
 
+    @Timed(name="read.block.children")
+    public void setChildren(BlockSummary result) throws DecoderException, DataAccessException, IOException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("hash", Hashes.fromBigEndian(result.getHash()));
         template.query(readQueries.getChildren(),  map, new RowCallbackHandler() {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
@@ -83,6 +120,12 @@ public class ReadOnlyRepository {
                 result.addChild(rs.wasNull() ? null : Hashes.toBigEndian(child));
             }
         });
+    }
+
+    @Timed(name="read.block.sumoftxouts")
+    public void setSumOfTxouts(BlockSummary result) throws DataAccessException, IOException, DecoderException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("hash", Hashes.fromBigEndian(result.getHash()));
 
         template.query(readQueries.getSumOfTxOuts(), map, new RowCallbackHandler() {
             @Override
@@ -91,7 +134,12 @@ public class ReadOnlyRepository {
                 result.setSumOfTxOuts(rs.wasNull() ? null : v);
             }
         });
+    }
 
+    @Timed(name="read.block.sumoftxins")
+    public void setSumOfTxins(BlockSummary result) throws DataAccessException, IOException, DecoderException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("hash", Hashes.fromBigEndian(result.getHash()));
         template.query(readQueries.getSumOfTxIns(),  map, new RowCallbackHandler() {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
@@ -99,7 +147,12 @@ public class ReadOnlyRepository {
                 result.setSumOfTxins(rs.wasNull() ? 0 : v);
             }
         });
+    }
 
+    @Timed(name="read.block.coinbase.value")
+    public void setCoinbaseValue(BlockSummary result) throws DataAccessException, IOException, DecoderException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("hash", Hashes.fromBigEndian(result.getHash()));
         template.query(readQueries.getCoinbaseValue(), map, new RowCallbackHandler() {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
@@ -107,7 +160,12 @@ public class ReadOnlyRepository {
                 result.setCoinbaseValue(rs.wasNull() ? null : v);
             }
         });
+    }
 
+    @Timed(name="read.block.coinbase.script")
+    public void setCoinbaseScriipt(BlockSummary result) throws DataAccessException, IOException, DecoderException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("hash", Hashes.fromBigEndian(result.getHash()));
         template.query(readQueries.getCoinbaseScript(), map, new RowCallbackHandler() {
 
             @Override
@@ -116,7 +174,12 @@ public class ReadOnlyRepository {
                 result.setCoinbaseScript(rs.wasNull() ? null : script);
             }
         });
+    }
 
+    @Timed(name="read.block.tip")
+    public void setTip(BlockSummary result) throws DataAccessException, IOException, DecoderException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("hash", Hashes.fromBigEndian(result.getHash()));
         template.query(readQueries.getTip(), map, new RowCallbackHandler() {
 
             @Override
@@ -136,27 +199,7 @@ public class ReadOnlyRepository {
         });
     }
 
-    @Timed
-    public void getTransactionSummmary(TransactionSummary transactionSummary) throws DecoderException, DataAccessException, IOException {
-        String hash = transactionSummary.getHash();
-        Map<String, Object> params = new HashMap<>();
-        params.put("hash", Hashes.fromBigEndian(hash));
-
-        template.query(readQueries.getTransactionSummary(), params, new RowCallbackHandler() {
-            @Override
-            public void processRow(ResultSet rs) throws SQLException {
-                long size = rs.getLong("size");
-                transactionSummary.setSize(rs.wasNull() ? null : size);
-                long version = rs.getLong("version");
-                transactionSummary.setVersion(rs.wasNull() ? null : version);
-                long lockTime = rs.getLong("lock_time");
-                transactionSummary.setLockTime(rs.wasNull() ? null : lockTime);
-                long outputs = rs.getLong("output");
-                transactionSummary.setOutputValue(rs.wasNull() ? null : outputs);
-            }
-        });
-    }
-
+    @Timed(name="read.block.txouts")
     public void addOutputs(BlockSummary bs) throws DecoderException, DataAccessException, IOException {
         String hash = bs.getHash();
         Map<String, Object> params = new HashMap<>();
@@ -196,6 +239,28 @@ public class ReadOnlyRepository {
         });
     }
 
+    @Timed(name="read.transaction.summary")
+    public void getTransactionSummmary(TransactionSummary transactionSummary) throws DecoderException, DataAccessException, IOException {
+        String hash = transactionSummary.getHash();
+        Map<String, Object> params = new HashMap<>();
+        params.put("hash", Hashes.fromBigEndian(hash));
+
+        template.query(readQueries.getTransactionSummary(), params, new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                long size = rs.getLong("size");
+                transactionSummary.setSize(rs.wasNull() ? null : size);
+                long version = rs.getLong("version");
+                transactionSummary.setVersion(rs.wasNull() ? null : version);
+                long lockTime = rs.getLong("lock_time");
+                transactionSummary.setLockTime(rs.wasNull() ? null : lockTime);
+                long outputs = rs.getLong("output");
+                transactionSummary.setOutputValue(rs.wasNull() ? null : outputs);
+            }
+        });
+    }
+
+    @Timed(name="read.transaction.txouts")
     public void addOutputs(TransactionSummary transactionSummary) throws DecoderException, DataAccessException, IOException {
         String hash = transactionSummary.getHash();
         Map<String, Object> params = new HashMap<>();
@@ -233,6 +298,7 @@ public class ReadOnlyRepository {
         transactionSummary.setOutputs(outputs);
     }
 
+    @Timed(name="read.transaction.summary")
     public void addOutputAddresses(TransactionSummary transactionSummary) throws DecoderException, DataAccessException, IOException {
         String hash = transactionSummary.getHash();
         Map<String, Object> params = new HashMap<>();
@@ -259,6 +325,7 @@ public class ReadOnlyRepository {
         });
     }
 
+    @Timed(name="read.transaction.summary")
     public void addInputs(TransactionSummary transactionSummary) throws DecoderException, DataAccessException, IOException {
         String hash = transactionSummary.getHash();
         Map<String, Object> params = new HashMap<>();
@@ -294,6 +361,7 @@ public class ReadOnlyRepository {
         transactionSummary.setInputs(inputs);
     }
 
+    @Timed(name="read.transaction.input.addresses")
     public void addInputAddresses(TransactionSummary transactionSummary) throws DataAccessException, IOException, DecoderException {
         String hash = transactionSummary.getHash();
         Map<String, Object> params = new HashMap<>();
@@ -320,6 +388,7 @@ public class ReadOnlyRepository {
         });
     }
 
+    @Timed(name="read.transaction.blocks")
     public void addBlocks(TransactionSummary transactionSummary) throws DataAccessException, IOException, DecoderException {
         String hash = transactionSummary.getHash();
         Map<String, Object> params = new HashMap<>();
@@ -344,6 +413,7 @@ public class ReadOnlyRepository {
         transactionSummary.setBlockPointers(blocks);
     }
 
+    @Timed(name="read.block.transactions")
     public void addTransactions(BlockSummary bs) throws DecoderException, DataAccessException, IOException {
         Map<String, Object> params = new HashMap<>();
         params.put("hash", Hashes.fromBigEndian(bs.getHash()));
@@ -365,6 +435,7 @@ public class ReadOnlyRepository {
     }
 
 
+    @Timed(name="read.block.txins")
     public void addInputs(BlockSummary bs) throws DecoderException, DataAccessException, IOException {
         Map<String, Object> params = new HashMap<>();
         params.put("hash", Hashes.fromBigEndian(bs.getHash()));

@@ -20,6 +20,14 @@ public class ReadOnlyService {
         BlockSummary bs = new BlockSummary();
         bs.setHash(block);
         db.setBlockSummaryDetails(bs);
+        db.setBlockNumTx(bs);
+        db.setBlockParent(bs);
+        db.setChildren(bs);
+        db.setSumOfTxouts(bs);
+        db.setSumOfTxins(bs);
+        db.setCoinbaseValue(bs);
+        db.setCoinbaseScriipt(bs);
+        db.setTip(bs);
         db.addTransactions(bs);
         db.addOutputs(bs);
         db.addInputs(bs);

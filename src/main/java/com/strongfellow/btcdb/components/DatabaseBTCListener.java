@@ -57,11 +57,6 @@ public class DatabaseBTCListener implements BTCListener {
         logger.info("finished processing tx hash {}", hash);
     }
 
-    @Override
-    public void processHeader(Block block) throws DataAccessException, IOException {
-        insertBlockChain(block);
-    }
-
     private void insertBlockChain(Block block) throws DataAccessException, IOException {
         byte[] hash = block.getMetadata().getHash();
         byte[] parent = block.getHeader().getPreviousBlock();
