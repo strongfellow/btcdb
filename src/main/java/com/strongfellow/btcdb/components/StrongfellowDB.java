@@ -82,7 +82,9 @@ public class StrongfellowDB {
         Map<String, Object> map = new HashMap<>();
         map.put("previous", previous);
         map.put("hash", hash);
-        template.update(writeQueries.ensureBlocks(), map);
+        int n = template.update(writeQueries.ensureBlocks(), map);
+        logger.info("we inserted this many blocks: {} out of {} and {}",
+                n, Hashes.toBigEndian(hash), Hashes.toBigEndian(previous));
     }
 
     @Timed(name="insert.block.chain")
