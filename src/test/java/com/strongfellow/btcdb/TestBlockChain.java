@@ -1,6 +1,7 @@
 package com.strongfellow.btcdb;
 
 import java.io.IOException;
+import java.security.DigestException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -164,7 +165,7 @@ public class TestBlockChain {
         }
     }
 
-    public void testChain() throws DataAccessException, IOException {
+    public void testChain() throws DataAccessException, IOException, DigestException {
         for (int i = 0; i < 10000; i++) {
             List<Node> nodes = new ArrayList<>(Node.getNodes());
             Collections.shuffle(nodes);
@@ -175,12 +176,12 @@ public class TestBlockChain {
         }
     }
 
-    private void insert(Node n) throws DataAccessException, IOException {
+    private void insert(Node n) throws DataAccessException, IOException, DigestException {
         if (n.parent != null) {
             Metadata bm = new Metadata(0, n.id.getBytes());
             BlockHeader header = new BlockHeader(0, n.parent.id.getBytes(), null, 0l, 0l, 0l);
             Block b = new Block(bm, header, Collections.emptyList());
-            this.listener.processHeader(b);
+            this.listener.processBlock(b);
         }
     }
 
