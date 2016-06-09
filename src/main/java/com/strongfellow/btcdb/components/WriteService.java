@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.strongfellow.btcdb.logic.Util;
 import com.strongfellow.btcdb.protocol.Block;
@@ -27,7 +26,6 @@ public class WriteService implements BTCListener {
     }
 
     @Override
-    @Transactional
     public void processBlock(Block block) throws DigestException, DataAccessException, IOException {
         String hash = Util.bigEndianHash(block.getMetadata().getHash());
         logger.info("begin processing block hash {}", hash);
@@ -54,7 +52,6 @@ public class WriteService implements BTCListener {
     }
 
     @Override
-    @Transactional
     public void processTransaction(Transaction tx) {
         String hash = Util.bigEndianHash(tx.getMetadata().getHash());
         logger.info("begin processing tx hash {}", hash);
