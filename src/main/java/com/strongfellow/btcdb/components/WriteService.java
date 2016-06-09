@@ -35,6 +35,7 @@ public class WriteService implements BTCListener {
         byte[] h = block.getMetadata().getHash();
         byte[] parent = block.getHeader().getPreviousBlock();
         database.insertBlock(h, parent);
+        database.insertBlockchain(h, parent);
         database.updateDescendents(parent);
         database.updateTips(h);
 
