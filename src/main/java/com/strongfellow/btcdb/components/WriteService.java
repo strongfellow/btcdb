@@ -15,9 +15,9 @@ import com.strongfellow.btcdb.protocol.Block;
 import com.strongfellow.btcdb.protocol.Transaction;
 
 @Component
-public class DatabaseBTCListener implements BTCListener {
+public class WriteService implements BTCListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(DatabaseBTCListener.class);
+    private static final Logger logger = LoggerFactory.getLogger(WriteService.class);
 
     private StrongfellowDB database;
 
@@ -27,12 +27,15 @@ public class DatabaseBTCListener implements BTCListener {
     }
 
     @Override
-    @Transactional
     public void processBlock(Block block) throws DigestException, DataAccessException, IOException {
         String hash = Util.bigEndianHash(block.getMetadata().getHash());
         logger.info("begin processing block hash {}", hash);
 
-        insertBlockChain(block);
+        byte[] h = block.getMetadata().getHash();
+        byte[] parent = block.getHeader().getPreviousBlock();
+        database.insertBlock(h, parent);
+        database.updateDescendents(parent);
+        database.updateTips(h);
 
         database.insertBlockDetails(block);
         database.ensureTransactionsAndTransactionReferences(block);
@@ -54,15 +57,8 @@ public class DatabaseBTCListener implements BTCListener {
         String hash = Util.bigEndianHash(tx.getMetadata().getHash());
         logger.info("begin processing tx hash {}", hash);
         //        database.addTransaction(tx);
-        logger.info("finished processing tx hash {}", hash);
+        throw new RuntimeException("not implemented");
+        // logger.info("finished processing tx hash {}", hash);
     }
 
-    private void insertBlockChain(Block block) throws DataAccessException, IOException {
-        byte[] hash = block.getMetadata().getHash();
-        byte[] parent = block.getHeader().getPreviousBlock();
-        database.insertBlock(hash, parent);
-        database.insertBlockchain(hash, parent);
-        database.updateDescendents(parent);
-        database.updateTips(hash);
-    }
 }

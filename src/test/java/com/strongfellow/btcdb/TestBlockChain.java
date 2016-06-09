@@ -20,7 +20,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
 import com.strongfellow.btcdb.components.DBUtils;
-import com.strongfellow.btcdb.components.DatabaseBTCListener;
+import com.strongfellow.btcdb.components.WriteService;
 import com.strongfellow.btcdb.components.QueryCache;
 import com.strongfellow.btcdb.components.StrongfellowDB;
 import com.strongfellow.btcdb.protocol.Block;
@@ -36,12 +36,12 @@ public class TestBlockChain {
         StrongfellowDB db = new StrongfellowDB();
         db.setDataSource(ds);
         db.setQueryCache(new QueryCache());
-        DatabaseBTCListener listener = new DatabaseBTCListener();
+        WriteService listener = new WriteService();
         listener.setDatabase(db);
         this.listener = listener;
     }
 
-    private DatabaseBTCListener listener;
+    private WriteService listener;
 
     private static class Node {
 
