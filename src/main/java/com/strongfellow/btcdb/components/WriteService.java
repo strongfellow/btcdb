@@ -27,6 +27,7 @@ public class WriteService implements BTCListener {
     }
 
     @Override
+    @Transactional
     public void processBlock(Block block) throws DigestException, DataAccessException, IOException {
         String hash = Util.bigEndianHash(block.getMetadata().getHash());
         logger.info("begin processing block hash {}", hash);
