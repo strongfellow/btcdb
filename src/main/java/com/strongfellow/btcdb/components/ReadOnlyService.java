@@ -28,7 +28,7 @@ public class ReadOnlyService {
         db.setCoinbaseValue(bs);
         db.setCoinbaseScriipt(bs);
         db.setTip(bs);
-        db.addTransactions(bs);
+        db.setBlockTransactions(bs);
         db.addOutputs(bs);
         db.addInputs(bs);
         return bs;

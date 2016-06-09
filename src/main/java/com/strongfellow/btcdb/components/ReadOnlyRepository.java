@@ -199,6 +199,26 @@ public class ReadOnlyRepository {
         });
     }
 
+    @Timed(name="read.block.transactions")
+    public void setBlockTransactions(BlockSummary bs) throws DecoderException, DataAccessException, IOException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("hash", Hashes.fromBigEndian(bs.getHash()));
+        List<TransactionSummary> transactions = template.query(
+                readQueries.getTransactionsForBlock(), params, new RowMapper<TransactionSummary>() {
+                    @Override
+                    public TransactionSummary mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        byte[] tx = rs.getBytes("tx");
+                        if (rs.wasNull()) {
+                            throw new SQLException("we expect tx");
+                        }
+                        TransactionSummary ts = new TransactionSummary();
+                        ts.setHash(Hashes.toBigEndian(tx));
+                        return ts;
+                    }
+                });
+        bs.setTransactions(transactions);
+    }
+
     @Timed(name="read.block.txouts")
     public void addOutputs(BlockSummary bs) throws DecoderException, DataAccessException, IOException {
         String hash = bs.getHash();
@@ -235,6 +255,32 @@ public class ReadOnlyRepository {
                     throw new SQLException(e);
                 }
                 txout.setValue(rs.getLong("value"));
+            }
+        });
+    }
+
+
+    @Timed(name="read.block.txins")
+    public void addInputs(BlockSummary bs) throws DecoderException, DataAccessException, IOException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("hash", Hashes.fromBigEndian(bs.getHash()));
+        template.query(readQueries.getBlockTxins(), params, new RowCallbackHandler() {
+
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                TransactionSummary ts = bs.getTransactions().get(
+                        rs.getInt("transaction_index"));
+                Txin txin = new Txin();
+                ts.getInputs().add(txin);
+                byte[] address = rs.getBytes("address");
+                try {
+                    txin.setAddress(rs.wasNull() ? null : address);
+                } catch (DigestException e) {
+                    throw new SQLException(e);
+                }
+                txin.setTxout(Hashes.toBigEndian(rs.getBytes("tx")));
+                txin.setIndex(rs.getInt("index"));
+                txin.setValue(rs.getLong("value"));
             }
         });
     }
@@ -411,53 +457,6 @@ public class ReadOnlyRepository {
             }
         });
         transactionSummary.setBlockPointers(blocks);
-    }
-
-    @Timed(name="read.block.transactions")
-    public void addTransactions(BlockSummary bs) throws DecoderException, DataAccessException, IOException {
-        Map<String, Object> params = new HashMap<>();
-        params.put("hash", Hashes.fromBigEndian(bs.getHash()));
-        List<TransactionSummary> transactions = template.query(
-                readQueries.getTransactionsForBlock(), params, new RowMapper<TransactionSummary>() {
-
-                    @Override
-                    public TransactionSummary mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        byte[] tx = rs.getBytes("tx");
-                        if (rs.wasNull()) {
-                            throw new SQLException("we expect tx");
-                        }
-                        TransactionSummary ts = new TransactionSummary();
-                        ts.setHash(Hashes.toBigEndian(tx));
-                        return ts;
-                    }
-                });
-        bs.setTransactions(transactions);
-    }
-
-
-    @Timed(name="read.block.txins")
-    public void addInputs(BlockSummary bs) throws DecoderException, DataAccessException, IOException {
-        Map<String, Object> params = new HashMap<>();
-        params.put("hash", Hashes.fromBigEndian(bs.getHash()));
-        template.query(readQueries.getBlockTxins(), params, new RowCallbackHandler() {
-
-            @Override
-            public void processRow(ResultSet rs) throws SQLException {
-                TransactionSummary ts = bs.getTransactions().get(
-                        rs.getInt("transaction_index"));
-                Txin txin = new Txin();
-                ts.getInputs().add(txin);
-                byte[] address = rs.getBytes("address");
-                try {
-                    txin.setAddress(rs.wasNull() ? null : address);
-                } catch (DigestException e) {
-                    throw new SQLException(e);
-                }
-                txin.setTxout(Hashes.toBigEndian(rs.getBytes("tx")));
-                txin.setIndex(rs.getInt("index"));
-                txin.setValue(rs.getLong("value"));
-            }
-        });
     }
 
 }
